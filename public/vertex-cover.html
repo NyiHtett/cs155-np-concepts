@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>APPROX-VERTEX-COVER — Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ecd8;
+    --paper-deep: #d9c9a3;
+    --ink: #0f0f1a;
+    --ink-soft: #1f1f2e;
+    --rule: #0f0f1a;
+    --vermillion: #a81d22;
+    --ochre: #a8691e;
+    --indigo: #1a325a;
+    --moss: #2f4a22;
+    --grid: rgba(15, 15, 26, 0.14);
+    --bg: #c9b88e;
+    --panel-bg: #f4ecd8;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Fraunces", Georgia, serif;
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      radial-gradient(ellipse at top left, rgba(168, 29, 34, 0.12), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(26, 50, 90, 0.15), transparent 60%);
+    background-size: 32px 32px, 32px 32px, auto, auto;
+    background-color: var(--bg);
+    min-height: 100vh;
+    padding: 24px 24px 32px;
+    font-weight: 500;
+  }
+
+  .masthead {
+    max-width: 1380px;
+    margin: 0 auto 20px;
+    background: var(--panel-bg);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 14px 22px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 24px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease forwards;
+  }
+  .masthead .edition {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .masthead h1 {
+    font-family: "Instrument Serif", serif;
+    font-weight: 400;
+    font-size: clamp(22px, 2.2vw, 32px);
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    color: var(--vermillion);
+  }
+  .masthead .folio {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    text-align: right;
+  }
+
+  .container {
+    display: grid;
+    grid-template-columns: 220px 1fr 420px;
+    gap: 20px;
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 2px solid var(--ink);
+    padding: 20px;
+    position: relative;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards;
+    animation-delay: 0.2s;
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+  .panel:nth-of-type(2) { animation-delay: 0.3s; }
+  .panel:nth-of-type(3) { animation-delay: 0.4s; }
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px solid var(--ink);
+    pointer-events: none;
+    opacity: 0.15;
+  }
+
+  .section-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--vermillion);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--ink);
+    opacity: 0.2;
+  }
+
+  svg#graph {
+    width: 100%;
+    height: 420px;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      #faf3e2;
+    background-size: 20px 20px;
+    border: 1px solid var(--ink);
+    display: block;
+  }
+
+  .controls { margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    padding: 10px 18px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    border-radius: 0;
+  }
+  button:hover {
+    background: var(--ink);
+    color: var(--paper);
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  button.secondary { background: transparent; }
+
+  .graph-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .graph-picker button {
+    padding: 8px 10px;
+    font-size: 10.5px;
+    text-align: left;
+    width: 100%;
+  }
+  .graph-picker button.active {
+    background: var(--vermillion);
+    color: var(--paper);
+    border-color: var(--vermillion);
+  }
+  .graph-picker button.active:hover {
+    background: var(--vermillion);
+    color: var(--paper);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+
+  .edge { stroke: var(--ink); stroke-width: 2; }
+  .edge.picked {
+    stroke: var(--vermillion);
+    stroke-width: 5;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .edge.removed {
+    stroke: var(--ink);
+    stroke-width: 1;
+    stroke-dasharray: 3 5;
+    opacity: 0.25;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
+  .node circle {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 2;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .node.in-cover circle { fill: var(--indigo); stroke: var(--ink); }
+  .node.just-added circle {
+    fill: var(--vermillion);
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .node.optimal circle { fill: var(--moss); stroke: var(--ink); stroke-width: 3; }
+  .node text {
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 22px;
+    fill: var(--ink);
+    pointer-events: none;
+  }
+  .node.in-cover text, .node.just-added text, .node.optimal text { fill: var(--paper); }
+
+  .phase-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    fill: var(--ink-soft);
+  }
+
+  .step-info {
+    border-left: 3px solid var(--vermillion);
+    padding: 4px 0 4px 16px;
+    margin-bottom: 20px;
+    min-height: 90px;
+  }
+  .step-info h3 {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 26px;
+    margin: 0 0 8px 0;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  #stepDesc {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  pre {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 16px 18px;
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-x: auto;
+    border: 1px solid var(--ink);
+    margin: 8px 0 0 0;
+  }
+  pre .hl {
+    background: var(--ochre);
+    color: var(--ink);
+    display: block;
+    padding: 0 6px;
+    margin: 0 -6px;
+    font-weight: 600;
+  }
+
+  .status-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 14px 0;
+  }
+  .chip {
+    background: transparent;
+    border: 1px solid var(--ink);
+    padding: 6px 12px;
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .chip.cover { border-color: var(--indigo); color: var(--indigo); }
+  .chip.edges { border-color: var(--vermillion); color: var(--vermillion); }
+  .chip.ratio { border-color: var(--ochre); color: #7a5220; background: rgba(212,144,58,0.12); }
+
+  .legend {
+    font-family: "Geist Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .legend span {
+    display: inline-block; width: 12px; height: 12px;
+    border-radius: 50%; vertical-align: middle; margin-right: 6px;
+    border: 1.5px solid var(--ink);
+  }
+  .lg-normal { background: var(--paper); }
+  .lg-added { background: var(--vermillion); }
+  .lg-cover { background: var(--indigo); }
+  .lg-opt { background: var(--moss); }
+
+  .graph-desc {
+    background: #fffaec;
+    border: 1px solid var(--ink);
+    border-left: 4px solid var(--ochre);
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: "Fraunces", serif;
+    color: var(--ink);
+  }
+  .graph-desc b {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 17px;
+    color: var(--vermillion);
+  }
+
+  .sidenote {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--ink);
+    padding-top: 14px;
+    margin-top: 18px;
+  }
+  .sidenote b {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .sidenote i {
+    color: var(--vermillion);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 1200px) {
+    .container { grid-template-columns: 1fr; }
+    .masthead { grid-template-columns: 1fr; text-align: left; }
+    .masthead .folio { text-align: left; }
+    .graph-picker { flex-direction: row; flex-wrap: wrap; }
+    .graph-picker button { width: auto; }
+  }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="edition">Algorithms · Vol. 35 · §5.2</div>
+  <h1>On the <em>Approximate</em> Vertex Cover</h1>
+  <div class="folio">CLRS · Fig. 35.1<br>Interactive Edition</div>
+</header>
+
+<div class="container">
+  <div class="panel">
+    <div class="section-label">Specimens</div>
+    <div class="graph-picker" id="graphPicker"></div>
+  </div>
+  <div class="panel">
+    <div class="graph-desc" id="graphDesc"></div>
+    <svg id="graph" viewBox="0 0 720 480"></svg>
+    <div class="legend">
+      <span class="lg-normal"></span>uncovered
+      <span class="lg-added"></span>just added
+      <span class="lg-cover"></span>approx C
+      <span class="lg-opt"></span>optimal C*
+    </div>
+    <div class="controls">
+      <button id="btnPrev">◀ Prev</button>
+      <button id="btnNext">Next ▶</button>
+      <button id="btnReset" class="secondary">Reset</button>
+      <button id="btnAuto" class="secondary">Auto</button>
+      <button id="btnShuffle" class="secondary">Shuffle</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-label">Annotation</div>
+    <div class="step-info">
+      <h3 id="stepTitle">Step</h3>
+      <div id="stepDesc"></div>
+    </div>
+
+    <div class="status-row">
+      <div class="chip cover">C = <span id="coverSet">∅</span></div>
+      <div class="chip cover">|C| = <span id="coverSize">0</span></div>
+      <div class="chip edges">|E′| = <span id="edgeCount">0</span></div>
+      <div class="chip ratio" id="ratioChip" style="display:none">ratio = <span id="ratioVal"></span></div>
+    </div>
+
+    <div class="section-label">Pseudocode</div>
+    <pre id="code">APPROX-VERTEX-COVER(G)
+<span id="ln1">1  C = ∅</span>
+<span id="ln2">2  E' = G.E</span>
+<span id="ln3">3  while E' ≠ ∅</span>
+<span id="ln4">4      let (u,v) be arbitrary edge of E'</span>
+<span id="ln5">5      C = C ∪ {u, v}</span>
+<span id="ln6">6      remove every edge incident on u or v</span>
+<span id="ln7">7  return C</span></pre>
+
+    <div class="sidenote">
+      <i>A marginal note.</i> Line 4 says <b>pick any edge</b> — the algorithm is
+      nondeterministic by design. Different choices produce different covers; some
+      lucky, some tight against the bound. Press <b>Shuffle</b> to rerun the same
+      graph under a different edge order. No matter what order you pick, the final
+      |C| is guaranteed ≤ 2·|C*|. That is the whole theorem.
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ GRAPH LIBRARY ============
+const GRAPHS = {
+  clrs: {
+    name: "CLRS Figure 35.1",
+    desc: "The textbook example. 7 vertices, 8 edges. Optimal cover = {b,d,e} (size 3). This graph is the worst case — the approximation returns size 6, giving ratio = 2.",
+    nodes: {
+      a:[150,340], b:[150,120], c:[310,120], d:[470,120],
+      e:[310,340], f:[470,340], g:[630,340]
+    },
+    edges: [['a','b'],['b','c'],['c','d'],['c','e'],['d','e'],['d','f'],['d','g'],['e','f']],
+    optimal: ['b','d','e']
+  },
+
+  triangle: {
+    name: "Triangle (K₃)",
+    desc: "A 3-cycle. The algorithm picks ONE edge, adds both endpoints → |C| = 2. Optimal is also 2 (you must cover all 3 edges, and any 2 vertices in a triangle do it). Ratio = 1 (perfect!).",
+    nodes: { a:[360,120], b:[200,380], c:[520,380] },
+    edges: [['a','b'],['a','c'],['b','c']],
+    optimal: ['a','b']
+  },
+
+  star: {
+    name: "Star (K₁,₅)",
+    desc: "One center connected to 5 leaves. OPTIMAL is just the center — |C*| = 1. But APPROX-VERTEX-COVER picks an edge and adds BOTH endpoints, so |C| = 2. Ratio = 2 — worst case!",
+    nodes: {
+      c:[360,240], a:[360,60], b:[560,140], d:[560,340],
+      e:[360,420], f:[160,340]
+    },
+    edges: [['c','a'],['c','b'],['c','d'],['c','e'],['c','f']],
+    optimal: ['c']
+  },
+
+  path: {
+    name: "Path P₆",
+    desc: "A chain a–b–c–d–e–f (5 edges). Optimal: pick alternating vertices {b,d,f}, size 3. Approx can get size 4 or 6 depending on which edges are picked first.",
+    nodes: {
+      a:[80,240], b:[200,240], c:[320,240],
+      d:[440,240], e:[560,240], f:[680,240]
+    },
+    edges: [['a','b'],['b','c'],['c','d'],['d','e'],['e','f']],
+    optimal: ['b','d','f']
+  },
+
+  cycle6: {
+    name: "6-cycle (C₆)",
+    desc: "Even cycle a–b–c–d–e–f–a. Optimal = every other vertex, size 3. Approx will typically pick 3 non-adjacent edges → size 6 = 2·optimal. Ratio = 2.",
+    nodes: {
+      a:[360,80], b:[560,180], c:[560,340],
+      d:[360,440], e:[160,340], f:[160,180]
+    },
+    edges: [['a','b'],['b','c'],['c','d'],['d','e'],['e','f'],['f','a']],
+    optimal: ['a','c','e']
+  },
+
+  k4: {
+    name: "Complete graph K₄",
+    desc: "Every pair of 4 vertices connected (6 edges). Optimal: any 3 vertices cover all edges → |C*| = 3. Approx picks 1 edge, covers 5 edges with 2 endpoints, then must pick another edge among the remaining vertex pair → |C| = 4.",
+    nodes: {
+      a:[220,120], b:[500,120], c:[500,400], d:[220,400]
+    },
+    edges: [['a','b'],['a','c'],['a','d'],['b','c'],['b','d'],['c','d']],
+    optimal: ['a','b','c']
+  },
+
+  bipartite: {
+    name: "Bipartite 3×3",
+    desc: "Complete bipartite K₃,₃. Optimal cover = one whole side (size 3). Approx picks 3 disjoint edges → |C| = 6. Ratio = 2.",
+    nodes: {
+      a:[180,100], b:[180,260], c:[180,420],
+      x:[540,100], y:[540,260], z:[540,420]
+    },
+    edges: [['a','x'],['a','y'],['a','z'],['b','x'],['b','y'],['b','z'],['c','x'],['c','y'],['c','z']],
+    optimal: ['a','b','c']
+  },
+
+  twoTriangles: {
+    name: "Two triangles + bridge",
+    desc: "Two K₃ triangles connected by a single bridge edge. Shows how the algorithm handles disconnected-feeling structures. Optimal = 4, approx often gets 4 or 6.",
+    nodes: {
+      a:[120,140], b:[120,360], c:[260,250],
+      d:[460,250], e:[600,140], f:[600,360]
+    },
+    edges: [['a','b'],['a','c'],['b','c'],['c','d'],['d','e'],['d','f'],['e','f']],
+    optimal: ['a','c','d','e']
+  }
+};
+
+// ============ STATE ============
+let currentGraphKey = 'clrs';
+let currentEdgeOrder = null; // permutation indices into edges array
+let steps = [];
+let idx = 0;
+let autoTimer = null;
+
+const svg = document.getElementById('graph');
+const NS = 'http://www.w3.org/2000/svg';
+const edgeKey = (e) => e[0]+'-'+e[1];
+
+// ============ RUN ALGORITHM ============
+function runAlgorithm(graph, edgeOrder) {
+  const edges = graph.edges;
+  const steps = [];
+
+  steps.push({
+    title: '(start) Input graph',
+    desc: `Line 1–2: Initialize C = ∅ and E′ = all ${edges.length} edges of G.`,
+    cover: new Set(),
+    justAdded: new Set(),
+    pickedEdge: null,
+    removedEdges: new Set(),
+    activeLine: [1,2],
+    phase: 'start',
+    showAllEdges: false,
+    optimal: false
+  });
+
+  let coverSoFar = new Set();
+  let removedSoFar = new Set();
+  let stepCount = 0;
+
+  for (const i of edgeOrder) {
+    const e = edges[i];
+    if (removedSoFar.has(edgeKey(e))) continue; // already removed, algorithm skips
+
+    stepCount++;
+    const [u, v] = e;
+    const newCover = new Set(coverSoFar);
+    newCover.add(u); newCover.add(v);
+    const newRemoved = new Set(removedSoFar);
+    edges.forEach(ee => {
+      if (ee[0]===u||ee[1]===u||ee[0]===v||ee[1]===v) newRemoved.add(edgeKey(ee));
+    });
+
+    steps.push({
+      title: `Step ${stepCount}: pick edge (${u}, ${v})`,
+      desc: `Lines 4–6: Pick arbitrary edge (${u}, ${v}) from E′; add both endpoints to C; remove every edge touching ${u} or ${v}.`,
+      cover: newCover,
+      justAdded: new Set([u, v]),
+      pickedEdge: e,
+      removedEdges: newRemoved,
+      activeLine: [4,5,6],
+      phase: `step ${stepCount}`,
+      showAllEdges: false,
+      optimal: false
+    });
+
+    coverSoFar = newCover;
+    removedSoFar = newRemoved;
+  }
+
+  // Final approx
+  const ratio = (coverSoFar.size / graph.optimal.length);
+  steps.push({
+    title: 'Result: approximate cover',
+    desc: `Line 7: E′ is empty. Return C = {${[...coverSoFar].sort().join(', ')}}, |C| = ${coverSoFar.size}.`,
+    cover: new Set(coverSoFar),
+    justAdded: new Set(),
+    pickedEdge: null,
+    removedEdges: new Set(),
+    activeLine: [7],
+    phase: 'approx',
+    showAllEdges: true,
+    optimal: false,
+    approxSize: coverSoFar.size,
+    ratio: ratio
+  });
+
+  // Optimal comparison
+  steps.push({
+    title: 'Compare: optimal cover C*',
+    desc: `Optimal cover C* = {${graph.optimal.sort().join(', ')}}, |C*| = ${graph.optimal.length}. Approx |C| = ${coverSoFar.size}. Ratio = ${coverSoFar.size}/${graph.optimal.length} = ${ratio.toFixed(2)} (guaranteed ≤ 2).`,
+    cover: new Set(),
+    justAdded: new Set(),
+    pickedEdge: null,
+    removedEdges: new Set(),
+    activeLine: [],
+    phase: 'optimal',
+    showAllEdges: true,
+    optimal: true,
+    optimalSet: new Set(graph.optimal),
+    approxSize: coverSoFar.size,
+    ratio: ratio
+  });
+
+  return steps;
+}
+
+// ============ RENDER ============
+function render(step) {
+  const graph = GRAPHS[currentGraphKey];
+  svg.innerHTML = '';
+
+  // Phase label
+  const phase = document.createElementNS(NS, 'text');
+  phase.setAttribute('x', 20); phase.setAttribute('y', 36);
+  phase.setAttribute('class', 'phase-label');
+  phase.textContent = step.phase;
+  svg.appendChild(phase);
+
+  // Edges
+  graph.edges.forEach(e => {
+    const [a, b] = e;
+    const [ax, ay] = graph.nodes[a];
+    const [bx, by] = graph.nodes[b];
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', ax); line.setAttribute('y1', ay);
+    line.setAttribute('x2', bx); line.setAttribute('y2', by);
+    let cls = 'edge';
+    if (step.showAllEdges) {
+      cls = 'edge';
+    } else if (step.pickedEdge && step.pickedEdge[0]===a && step.pickedEdge[1]===b) {
+      cls += ' picked';
+    } else if (step.removedEdges.has(edgeKey(e))) {
+      cls += ' removed';
+    }
+    line.setAttribute('class', cls);
+    svg.appendChild(line);
+  });
+
+  // Nodes
+  Object.entries(graph.nodes).forEach(([id, [x,y]]) => {
+    const g = document.createElementNS(NS, 'g');
+    let cls = 'node';
+    if (step.optimal) {
+      if (step.optimalSet.has(id)) cls += ' optimal';
+    } else {
+      if (step.justAdded.has(id)) cls += ' just-added';
+      else if (step.cover.has(id)) cls += ' in-cover';
+    }
+    g.setAttribute('class', cls);
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 24);
+    g.appendChild(c);
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x); t.setAttribute('y', y);
+    t.textContent = id;
+    g.appendChild(t);
+    svg.appendChild(g);
+  });
+
+  document.getElementById('stepTitle').textContent = step.title;
+  document.getElementById('stepDesc').textContent = step.desc;
+
+  const displayCover = step.optimal ? step.optimalSet : step.cover;
+  document.getElementById('coverSet').textContent =
+    displayCover.size ? '{' + [...displayCover].sort().join(', ') + '}' : '∅';
+  document.getElementById('coverSize').textContent = displayCover.size;
+  const totalEdges = graph.edges.length;
+  const remaining = step.showAllEdges ? totalEdges : totalEdges - step.removedEdges.size;
+  document.getElementById('edgeCount').textContent = remaining;
+
+  const ratioChip = document.getElementById('ratioChip');
+  if (step.ratio !== undefined) {
+    ratioChip.style.display = '';
+    document.getElementById('ratioVal').textContent = step.ratio.toFixed(2);
+  } else {
+    ratioChip.style.display = 'none';
+  }
+
+  for (let i = 1; i <= 7; i++) {
+    document.getElementById('ln'+i).className = step.activeLine.includes(i) ? 'hl' : '';
+  }
+}
+
+function update() {
+  render(steps[idx]);
+  document.getElementById('btnPrev').disabled = idx === 0;
+  document.getElementById('btnNext').disabled = idx === steps.length - 1;
+}
+
+function loadGraph(key, shuffle=false) {
+  currentGraphKey = key;
+  const graph = GRAPHS[key];
+  const n = graph.edges.length;
+  currentEdgeOrder = [...Array(n).keys()];
+  if (shuffle) {
+    for (let i = n-1; i>0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [currentEdgeOrder[i], currentEdgeOrder[j]] = [currentEdgeOrder[j], currentEdgeOrder[i]];
+    }
+  }
+  steps = runAlgorithm(graph, currentEdgeOrder);
+  idx = 0;
+  stopAuto();
+  document.getElementById('graphDesc').innerHTML = '<b>' + graph.name + ':</b> ' + graph.desc;
+  // active button
+  document.querySelectorAll('#graphPicker button').forEach(b => {
+    b.classList.toggle('active', b.dataset.key === key);
+  });
+  update();
+}
+
+function stopAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; document.getElementById('btnAuto').textContent = 'Auto-play'; }
+}
+
+// ============ WIRE UP ============
+const picker = document.getElementById('graphPicker');
+Object.entries(GRAPHS).forEach(([key, g]) => {
+  const b = document.createElement('button');
+  b.textContent = g.name;
+  b.dataset.key = key;
+  b.onclick = () => loadGraph(key);
+  picker.appendChild(b);
+});
+
+document.getElementById('btnNext').onclick = () => { if (idx < steps.length-1) { idx++; update(); } };
+document.getElementById('btnPrev').onclick = () => { if (idx > 0) { idx--; update(); } };
+document.getElementById('btnReset').onclick = () => { idx = 0; stopAuto(); update(); };
+document.getElementById('btnShuffle').onclick = () => { loadGraph(currentGraphKey, true); };
+document.getElementById('btnAuto').onclick = () => {
+  if (autoTimer) { stopAuto(); return; }
+  document.getElementById('btnAuto').textContent = 'Stop';
+  autoTimer = setInterval(() => {
+    if (idx < steps.length - 1) { idx++; update(); }
+    else stopAuto();
+  }, 1400);
+};
+
+loadGraph('clrs');
+</script>
+</body>
+</html>

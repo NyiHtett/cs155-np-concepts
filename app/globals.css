@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #c9b88e;
+  color: #0f0f1a;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 500;
+}
+
+.page-back {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 100;
+  font-family: "Geist Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  background: #f4ecd8;
+  color: #0f0f1a;
+  border: 2px solid #0f0f1a;
+  padding: 8px 14px;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 #0f0f1a;
+  transition: all 0.15s ease;
+}
+.page-back:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #0f0f1a;
+}
+
+.viz-frame {
+  width: 100%;
+  height: 100vh;
+  border: 0;
+  display: block;
+}
