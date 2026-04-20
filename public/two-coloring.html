@@ -50,11 +50,27 @@
     box-shadow: 6px 6px 0 var(--ink);
     padding: 14px 22px;
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: end;
-    gap: 24px;
+    grid-template-columns: auto auto 1fr auto;
+    align-items: center;
+    gap: 18px;
     opacity: 0;
     animation: fadeUp 0.9s ease forwards;
+  }
+  .masthead .home-link {
+    font-family: "Geist Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    padding: 7px 12px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .masthead .home-link:hover {
+    background: var(--ink);
+    color: var(--paper);
   }
   .masthead .edition {
     font-family: "Geist Mono", monospace;
@@ -333,6 +349,7 @@
 </head>
 <body>
 <header class="masthead">
+  <a href="/" target="_top" class="home-link">◀ Home</a>
   <div class="edition">Algorithms · Graph · BFS</div>
   <h1>On the <em>2-Coloring</em> of a Graph</h1>
   <div class="folio">CS155 · Interactive Edition</div>

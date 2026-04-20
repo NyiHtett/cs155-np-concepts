@@ -139,18 +139,20 @@ export function HeroContent() {
           with annotated pseudocode, arbitrary-choice exploration, and proven approximation bounds.
         </p>
 
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
           <Link
             href="/vertex-cover"
-            className="px-7 py-3 rounded-full bg-vermillion text-white font-medium text-xs uppercase tracking-widest transition-all duration-200 hover:bg-vermillion/90 cursor-pointer font-mono"
+            className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-vermillion text-white font-semibold text-xs uppercase tracking-[0.2em] font-mono cursor-pointer shadow-[0_6px_20px_-4px_rgba(168,29,34,0.6)] ring-1 ring-white/20 hover:shadow-[0_10px_28px_-4px_rgba(168,29,34,0.8)] hover:-translate-y-0.5 hover:bg-[#c22a30] transition-all duration-200"
           >
             Approx · Vertex Cover
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
           <Link
             href="/two-coloring"
-            className="px-7 py-3 rounded-full bg-transparent border border-white/40 text-white font-medium text-xs uppercase tracking-widest transition-all duration-200 hover:bg-white/10 hover:border-white/60 cursor-pointer font-mono"
+            className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/50 text-white font-semibold text-xs uppercase tracking-[0.2em] font-mono cursor-pointer shadow-[0_6px_20px_-4px_rgba(0,0,0,0.5)] hover:bg-white hover:text-ink hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-4px_rgba(255,255,255,0.3)] transition-all duration-200"
           >
             2-Coloring · BFS
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
         </div>
       </div>
