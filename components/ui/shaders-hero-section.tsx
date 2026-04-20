@@ -60,13 +60,11 @@ export function ShaderBackground({ children }: ShaderBackgroundProps) {
         className="absolute inset-0 w-full h-full"
         colors={["#0f0f1a", "#a81d22", "#f4ecd8", "#1a325a", "#d4902a"]}
         speed={0.3}
-        backgroundColor="#0f0f1a"
       />
       <MeshGradient
         className="absolute inset-0 w-full h-full opacity-60"
         colors={["#0f0f1a", "#f4ecd8", "#a81d22", "#0f0f1a"]}
         speed={0.2}
-        backgroundColor="transparent"
       />
 
       {children}
@@ -79,20 +77,19 @@ export function PulsingCircle() {
     <div className="absolute bottom-8 right-8 z-30">
       <div className="relative w-20 h-20 flex items-center justify-center">
         <PulsingBorder
-          colors={["#a81d22", "#d4902a", "#6aa3d4", "#7ab36a", "#f4ecd8", "#1a325a", "#0f0f1a"]}
+          colors={["#a81d22", "#d4902a", "#6aa3d4", "#7ab36a", "#f4ecd8"]}
           colorBack="#00000000"
           speed={1.5}
           roundness={1}
           thickness={0.1}
           softness={0.2}
           intensity={5}
-          spotsPerColor={5}
+          spots={4}
           spotSize={0.1}
           pulse={0.1}
           smoke={0.5}
           smokeSize={4}
           scale={0.65}
-          rotation={0}
           style={{ width: "60px", height: "60px", borderRadius: "50%" }}
         />
         <motion.svg
