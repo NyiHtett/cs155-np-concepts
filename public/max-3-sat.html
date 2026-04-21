@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MAX-3-CNF-SAT — The 7/8 Approximation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ecd8;
+    --paper-deep: #d9c9a3;
+    --ink: #0f0f1a;
+    --ink-soft: #1f1f2e;
+    --vermillion: #a81d22;
+    --ochre: #a8691e;
+    --indigo: #1a325a;
+    --moss: #2f4a22;
+    --grid: rgba(15, 15, 26, 0.14);
+    --bg: #c9b88e;
+    --panel-bg: #f4ecd8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font-family: "Fraunces", Georgia, serif;
+    font-feature-settings: "ss01", "ss02";
+  }
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      radial-gradient(ellipse at top left, rgba(168, 29, 34, 0.12), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(26, 50, 90, 0.15), transparent 60%);
+    background-size: 32px 32px, 32px 32px, auto, auto;
+    background-color: var(--bg);
+    min-height: 100vh;
+    padding: 24px 24px 64px;
+    font-weight: 500;
+  }
+
+  .masthead {
+    max-width: 1380px;
+    margin: 0 auto 24px;
+    background: var(--panel-bg);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 14px 22px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 24px;
+    opacity: 0; animation: fadeUp 0.9s ease forwards;
+  }
+  .masthead .edition,
+  .masthead .folio {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .masthead .folio { text-align: right; letter-spacing: 0.15em; }
+  .masthead h1 {
+    font-family: "Instrument Serif", serif;
+    font-weight: 400; font-size: clamp(22px, 2.2vw, 32px);
+    line-height: 1.1; margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .masthead h1 em { font-style: italic; color: var(--vermillion); }
+
+  main { max-width: 1380px; margin: 0 auto; display: grid; gap: 24px; }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 24px 28px;
+    position: relative;
+    opacity: 0; animation: fadeUp 0.8s ease forwards;
+  }
+  .panel::before {
+    content: ""; position: absolute; inset: 4px;
+    border: 1px solid var(--ink); pointer-events: none; opacity: 0.15;
+  }
+  .panel:nth-of-type(1) { animation-delay: 0.10s; }
+  .panel:nth-of-type(2) { animation-delay: 0.18s; }
+  .panel:nth-of-type(3) { animation-delay: 0.26s; }
+  .panel:nth-of-type(4) { animation-delay: 0.34s; }
+  .panel:nth-of-type(5) { animation-delay: 0.42s; }
+  .panel:nth-of-type(6) { animation-delay: 0.50s; }
+
+  .section-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--vermillion);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ""; flex: 1; height: 1px;
+    background: var(--ink); opacity: 0.2;
+  }
+
+  h2 {
+    font-family: "Instrument Serif", serif;
+    font-style: italic; font-weight: 400;
+    font-size: clamp(26px, 2.4vw, 36px);
+    line-height: 1.05; margin: 0 0 6px 0;
+  }
+  h2 em { color: var(--vermillion); font-style: italic; }
+  .lede {
+    font-size: 16px; line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 64ch;
+    margin: 0 0 18px 0;
+  }
+  p { line-height: 1.65; }
+  b { color: var(--ink); }
+  i { color: var(--vermillion); font-style: italic; }
+  code {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.9em;
+    background: rgba(15,15,26,0.06);
+    padding: 1px 5px;
+    border: 1px solid rgba(15,15,26,0.18);
+  }
+
+  button {
+    padding: 9px 16px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer; font-weight: 500;
+    transition: all 0.15s ease;
+    border-radius: 0;
+  }
+  button:hover {
+    background: var(--ink); color: var(--paper);
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  button.primary {
+    background: var(--vermillion); color: var(--paper);
+    border-color: var(--vermillion);
+  }
+  button.primary:hover { background: var(--ink); border-color: var(--ink); }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; align-items: center; }
+
+  .marg {
+    background: rgba(168,105,30,0.10);
+    border-left: 4px solid var(--ochre);
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 14px; line-height: 1.6;
+  }
+  .marg b { color: var(--ochre); }
+
+  .footer-rule {
+    text-align: center;
+    font-family: "Geist Mono", monospace;
+    font-size: 10px; letter-spacing: 0.3em;
+    color: var(--ink-soft);
+    margin-top: 36px; text-transform: uppercase;
+  }
+
+  /* ============ FORMULA ============ */
+  .formula {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 22px;
+    line-height: 2;
+    background: #faf3e2;
+    border: 1px solid var(--ink);
+    padding: 16px 22px;
+    overflow-x: auto;
+  }
+  .formula .clause {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 4px 4px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+  }
+  .formula .clause.sat   { background: var(--moss);  color: var(--paper); }
+  .formula .clause.unsat { background: var(--vermillion); color: var(--paper); }
+  .formula .clause.cur   { box-shadow: 0 0 0 3px var(--ochre); }
+  .formula .lit {
+    display: inline-block;
+    padding: 0 3px;
+    transition: all 0.3s ease;
+  }
+  .formula .lit.true  { color: var(--moss); font-weight: 600; }
+  .formula .lit.false { color: var(--vermillion); opacity: 0.65; }
+  .formula .clause.sat .lit.true  { color: #faf3a4; font-weight: 700; }
+  .formula .clause.sat .lit.false { color: var(--paper); opacity: 0.55; }
+  .formula .clause.unsat .lit { color: var(--paper); opacity: 0.85; }
+  .formula .conn { font-size: 18px; color: var(--ink-soft); margin: 0 4px; }
+  .formula .neg  { font-style: normal; }
+
+  /* Variable assignment chips */
+  .var-row {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 14px 0;
+    align-items: center;
+  }
+  .var-chip {
+    font-family: "Geist Mono", monospace;
+    font-size: 13px;
+    padding: 6px 14px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.25s ease;
+    min-width: 64px; text-align: center;
+  }
+  .var-chip.t { background: var(--indigo); color: var(--paper); }
+  .var-chip.f { background: #fff0e0; color: var(--ink); border-style: dashed; }
+  .var-chip.flip-anim { animation: flipPop 0.35s ease; }
+  @keyframes flipPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.18) rotate(-3deg); }
+    100% { transform: scale(1); }
+  }
+
+  .stat-strip {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin: 14px 0;
+  }
+  .chip {
+    background: transparent;
+    border: 1px solid var(--ink);
+    padding: 6px 12px;
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  .chip.sat   { border-color: var(--moss);       color: var(--moss); }
+  .chip.unsat { border-color: var(--vermillion); color: var(--vermillion); }
+  .chip.exp   { border-color: var(--ochre);      color: #7a5220; background: rgba(212,144,58,0.12); }
+
+  /* ============ TRUTH TABLE (Panel 3) ============ */
+  .ttwrap {
+    overflow-x: auto;
+    background: #faf3e2;
+    border: 1px solid var(--ink);
+    padding: 14px;
+  }
+  table.tt {
+    border-collapse: collapse;
+    font-family: "Geist Mono", monospace;
+    font-size: 13px;
+    margin: 0 auto;
+  }
+  table.tt th {
+    font-weight: 500;
+    color: var(--ink-soft);
+    padding: 8px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--ink);
+    background: rgba(168,105,30,0.08);
+  }
+  table.tt td {
+    padding: 6px 14px;
+    text-align: center;
+    border: 1px solid rgba(15,15,26,0.12);
+    background: var(--paper);
+    transition: all 0.4s ease;
+  }
+  table.tt td.t { color: var(--moss); font-weight: 600; }
+  table.tt td.f { color: var(--vermillion); }
+  table.tt tr.hide td { opacity: 0.18; }
+  table.tt tr.cur td { background: rgba(168,105,30,0.22); }
+  table.tt tr.sat td.result { background: var(--moss); color: var(--paper); }
+  table.tt tr.unsat td.result {
+    background: var(--vermillion); color: var(--paper);
+    box-shadow: inset 0 0 0 3px var(--ochre);
+  }
+
+  /* ============ HISTOGRAM (Panel 5) ============ */
+  .histo {
+    background: #faf3e2;
+    border: 1px solid var(--ink);
+    padding: 14px;
+    margin-top: 12px;
+  }
+  .histo svg { display: block; width: 100%; height: 220px; }
+  .histo .bar { fill: var(--indigo); transition: height 0.3s ease, y 0.3s ease, fill 0.3s ease; }
+  .histo .bar.above { fill: var(--moss); }
+  .histo .axis-line { stroke: var(--ink); stroke-width: 1.2; }
+  .histo .axis-text {
+    font-family: "Geist Mono", monospace; font-size: 10px;
+    fill: var(--ink-soft);
+  }
+  .histo .mean-line {
+    stroke: var(--vermillion);
+    stroke-width: 2;
+    stroke-dasharray: 4 3;
+  }
+  .histo .mean-text {
+    font-family: "Geist Mono", monospace; font-size: 10px;
+    fill: var(--vermillion); font-weight: 600;
+  }
+
+  /* ============ DERANDOMIZATION (Panel 6) ============ */
+  .derand-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  @media (max-width: 900px) { .derand-grid { grid-template-columns: 1fr; } }
+  .cond-card {
+    background: #fffaec;
+    border: 1px solid var(--ink);
+    padding: 14px 16px;
+    transition: all 0.3s ease;
+  }
+  .cond-card.winner {
+    background: var(--moss);
+    color: var(--paper);
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: translate(-2px, -2px);
+  }
+  .cond-card .head {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vermillion);
+    margin-bottom: 8px;
+  }
+  .cond-card.winner .head { color: var(--paper-deep); }
+  .cond-card .val {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 32px;
+    line-height: 1;
+    margin: 6px 0 8px 0;
+  }
+  .cond-card .breakdown {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .cond-card.winner .breakdown { color: var(--paper-deep); }
+  .cond-card .clause-line {
+    display: flex; justify-content: space-between;
+    border-bottom: 1px dotted rgba(15,15,26,0.18);
+    padding: 2px 0;
+  }
+  .cond-card.winner .clause-line {
+    border-bottom-color: rgba(244,236,216,0.25);
+  }
+
+  .derand-status {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+    margin-top: 14px;
+  }
+  .derand-status b { color: var(--vermillion); }
+
+  .legend {
+    font-family: "Geist Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 14px;
+    display: flex; flex-wrap: wrap; gap: 14px;
+  }
+  .legend span.dot {
+    display: inline-block; width: 12px; height: 12px;
+    vertical-align: middle; margin-right: 6px;
+    border: 1.5px solid var(--ink);
+  }
+  .lg-sat   { background: var(--moss); }
+  .lg-unsat { background: var(--vermillion); }
+  .lg-true  { background: var(--indigo); }
+  .lg-false { background: #fff0e0; border-style: dashed !important; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="edition">Algorithms · Vol. 35 · §5.4</div>
+  <h1>The <em>7/8</em> Approximation for MAX-3-CNF-SAT</h1>
+  <div class="folio">CS155 · Class Notes<br>Randomized → Derandomized</div>
+</header>
+
+<main>
+
+<!-- ============ PANEL 1 — PROBLEM ============ -->
+<section class="panel">
+  <div class="section-label">§ 1 — The Problem</div>
+  <h2>Satisfy as many <em>3-literal clauses</em> as possible.</h2>
+  <p class="lede">
+    A <b>3-CNF formula</b> is a conjunction (∧) of clauses, where each clause is a disjunction (∨) of <i>three distinct literals</i>. A literal is a variable like <code>x₁</code> or its negation <code>¬x₁</code>. <b>3-SAT</b> asks whether all clauses can be satisfied simultaneously — that's NP-complete. <b>MAX-3-SAT</b> asks how many clauses we can satisfy in the best case — also NP-hard.
+  </p>
+
+  <div class="formula">
+    (x₁ ∨ x₂ ∨ ¬x₃) <span class="conn">∧</span>
+    (¬x₁ ∨ x₃ ∨ x₄) <span class="conn">∧</span>
+    (x₂ ∨ ¬x₄ ∨ x₅) <span class="conn">∧</span>
+    (¬x₂ ∨ x₄ ∨ ¬x₆) <span class="conn">∧</span>
+    (x₁ ∨ ¬x₅ ∨ x₆) <span class="conn">∧</span>
+    <span style="color:var(--ink-soft)">…</span>
+  </div>
+
+  <div class="marg">
+    <b>The plan.</b> Even though MAX-3-SAT is NP-hard, a <b>trivial</b> randomized algorithm — flip a fair coin for each variable — already satisfies <i>at least 7/8 of the clauses in expectation</i>. Then we'll <b>derandomize</b> it to get a <i>deterministic polynomial-time</i> 7/8-approximation. No cleverness, just probability.
+  </div>
+</section>
+
+<!-- ============ PANEL 2 — RANDOMIZED ALGO ============ -->
+<section class="panel">
+  <div class="section-label">§ 2 — The Algorithm: Flip a Coin Per Variable</div>
+  <h2>Click <em>flip coins</em>. Watch the clauses light up.</h2>
+  <p class="lede">
+    Assign each variable to TRUE or FALSE independently with probability ½. That's the entire algorithm. Below: a 6-variable, 10-clause formula. Click a variable chip to flip it, or use the buttons.
+  </p>
+
+  <div class="var-row" id="varRow"></div>
+
+  <div class="controls">
+    <button class="primary" id="btnFlip">⟳ Flip All Coins</button>
+    <button id="btnAllT">All TRUE</button>
+    <button id="btnAllF">All FALSE</button>
+  </div>
+
+  <div class="formula" id="formulaBox"></div>
+
+  <div class="stat-strip">
+    <div class="chip sat"  >satisfied: <span id="satCount">0</span> / <span id="totCount">10</span></div>
+    <div class="chip unsat">unsatisfied: <span id="unsatCount">0</span></div>
+    <div class="chip exp"  >expected (7m/8): <span id="expVal">8.75</span></div>
+  </div>
+
+  <div class="legend">
+    <span class="dot lg-sat"></span>satisfied clause
+    <span class="dot lg-unsat"></span>unsatisfied clause
+    <span class="dot lg-true"></span>variable = TRUE
+    <span class="dot lg-false"></span>variable = FALSE
+  </div>
+</section>
+
+<!-- ============ PANEL 3 — WHY 7/8 ============ -->
+<section class="panel">
+  <div class="section-label">§ 3 — Why <em>P(satisfied) = 7/8</em> per Clause</div>
+  <h2>Only <em>one</em> of eight assignments fails any single clause.</h2>
+  <p class="lede">
+    Take any 3-literal clause — say <code>(x ∨ y ∨ ¬z)</code>. There are 2³ = 8 ways to assign (x, y, z). Step through them: only the assignment that makes <i>all three literals false</i> fails the clause. That's <b>1 of 8</b>. So <code>P(satisfied) = 7/8</code> for every 3-clause, no matter what literals appear in it.
+  </p>
+
+  <div class="controls">
+    <button id="ttPrev">◀ Prev</button>
+    <button id="ttNext">Next ▶</button>
+    <button id="ttAuto">Auto</button>
+    <button id="ttReset">Reset</button>
+  </div>
+
+  <div class="ttwrap">
+    <table class="tt" id="ttTable">
+      <thead>
+        <tr><th>row</th><th>x</th><th>y</th><th>z</th><th>¬z</th><th>x ∨ y ∨ ¬z</th></tr>
+      </thead>
+      <tbody id="ttBody"></tbody>
+    </table>
+  </div>
+  <p style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink-soft);margin-top:12px" id="ttCaption">
+    Press <b style="color:var(--vermillion)">Next</b> to step through the 8 truth assignments.
+  </p>
+
+  <div class="marg">
+    <b>It doesn't matter which literals.</b> If the clause were <code>(¬a ∨ b ∨ c)</code> instead, the failing assignment would be <code>a=T, b=F, c=F</code> — different bits, but still exactly <i>1 of 8</i> outcomes. Every 3-clause has exactly one "bad" assignment under random coin flips. Conclusion: for any single 3-clause Cᵢ, &nbsp;<i>P(Cᵢ satisfied) = 7/8</i>.
+  </div>
+</section>
+
+<!-- ============ PANEL 4 — LINEARITY ============ -->
+<section class="panel">
+  <div class="section-label">§ 4 — Linearity of Expectation → 7m/8</div>
+  <h2>Sum the per-clause expectations. <em>Independence not required.</em></h2>
+  <p class="lede">
+    Define <code>Yᵢ = 1</code> if clause <code>Cᵢ</code> is satisfied, else 0. Then the total number of satisfied clauses is <code>Y = Y₁ + Y₂ + … + Y_m</code>.
+    Each <code>E[Yᵢ] = P(Cᵢ satisfied) = 7/8</code>. By <b>linearity of expectation</b>:
+  </p>
+
+  <div style="background:var(--ink);color:var(--paper);padding:22px;font-family:'Instrument Serif',serif;font-style:italic;font-size:26px;text-align:center;border:1px solid var(--ink)">
+    E[Y] &nbsp;=&nbsp; E[Y₁] + E[Y₂] + … + E[Y<sub>m</sub>] &nbsp;=&nbsp; m · (7/8) &nbsp;=&nbsp; <span style="color:#fff7c2">7m/8</span>
+  </div>
+
+  <div class="marg" style="margin-top:18px">
+    <b>The subtle bit.</b> Clauses share variables, so the events "C₁ satisfied" and "C₂ satisfied" are <i>not independent</i>. But linearity of expectation <b>doesn't care about independence</b> — it always holds. That's why this proof is so clean: no probabilistic gymnastics, just arithmetic.
+  </div>
+</section>
+
+<!-- ============ PANEL 5 — EXISTENCE ============ -->
+<section class="panel">
+  <div class="section-label">§ 5 — From Expectation to Existence</div>
+  <h2>If the average is 7m/8, <em>some</em> assignment must hit ≥ 7m/8.</h2>
+  <p class="lede">
+    A random variable can't be strictly below its mean at every outcome — that would contradict the definition of mean. So among the 2ⁿ possible assignments, <b>at least one</b> satisfies ≥ ⌈7m/8⌉ clauses. This is the <i>probabilistic method</i> in its purest form: prove existence by averaging.
+  </p>
+
+  <div class="controls">
+    <button class="primary" id="btnRunMany">Run 1000 random assignments</button>
+    <button id="btnClearHisto">Clear</button>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-soft);margin-left:6px" id="histoStats"></span>
+  </div>
+
+  <div class="histo">
+    <svg id="histoSvg" viewBox="0 0 800 220" preserveAspectRatio="none"></svg>
+  </div>
+  <p style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink-soft);margin-top:8px">
+    <span style="color:var(--indigo);font-weight:600">indigo</span> = below mean &nbsp;·&nbsp;
+    <span style="color:var(--moss);font-weight:600">moss</span> = at or above mean &nbsp;·&nbsp;
+    <span style="color:var(--vermillion);font-weight:600">red dashed</span> = 7m/8 expectation
+  </p>
+</section>
+
+<!-- ============ PANEL 6 — DERANDOMIZATION ============ -->
+<section class="panel">
+  <div class="section-label">§ 6 — Derandomization · Method of Conditional Expectations</div>
+  <h2>Process variables one at a time. Pick the side that <em>preserves the average</em>.</h2>
+  <p class="lede">
+    Here's the trick. The expectation <code>E[Y | x₁, x₂, …, xₙ]</code> over random assignments is <i>7m/8</i>. After fixing <code>x₁ = T</code>, the conditional expectation might go up or down. But the <b>average</b> of the two conditional values <code>E[Y | x₁=T]</code> and <code>E[Y | x₁=F]</code> equals the unconditional <code>E[Y]</code>. So <b>at least one of them is ≥ E[Y]</b>. Pick that one. Repeat for x₂, x₃, …
+  </p>
+
+  <div class="formula" id="derandFormula" style="font-size:20px;line-height:1.8"></div>
+
+  <div class="controls" style="margin-top:18px">
+    <button id="dPrev">◀ Prev</button>
+    <button id="dNext">Next ▶</button>
+    <button id="dReset">Reset</button>
+  </div>
+
+  <div class="derand-grid" id="derandCards"></div>
+
+  <div class="derand-status" id="dStatus">
+    Press <b>Next</b> to fix variables one at a time using conditional expectations.
+  </div>
+
+  <div class="marg" style="margin-top:18px">
+    <b>Why is this polynomial?</b> Computing each <code>E[Y | partial]</code> takes O(m): for each clause, count how many of its literals are already satisfied / unassigned. Repeat for n variables × 2 choices = O(nm). The result is a deterministic algorithm that <b>provably</b> outputs an assignment satisfying ≥ ⌈7m/8⌉ clauses. No randomness needed.
+  </div>
+</section>
+
+<div class="footer-rule">⁂ &nbsp;·&nbsp; end of edition &nbsp;·&nbsp; ⁂</div>
+
+</main>
+
+<script>
+// ============================================================
+//  Shared formula (Panel 2 + math)
+//  Each clause = 3 literals; literal = {var: 1..n, neg: bool}
+// ============================================================
+const N_VARS = 6;
+const FORMULA = [
+  [{v:1,n:false},{v:2,n:false},{v:3,n:true}],
+  [{v:1,n:true}, {v:3,n:false},{v:4,n:false}],
+  [{v:2,n:false},{v:4,n:true}, {v:5,n:false}],
+  [{v:2,n:true}, {v:4,n:false},{v:6,n:true}],
+  [{v:1,n:false},{v:5,n:true}, {v:6,n:false}],
+  [{v:3,n:true}, {v:5,n:false},{v:6,n:true}],
+  [{v:3,n:false},{v:4,n:true}, {v:5,n:true}],
+  [{v:1,n:false},{v:2,n:true}, {v:6,n:false}],
+  [{v:1,n:true}, {v:4,n:false},{v:5,n:false}],
+  [{v:3,n:true}, {v:4,n:false},{v:6,n:false}]
+];
+const M = FORMULA.length;
+
+// assignment: array of true/false/null (null = unassigned)
+let assignment = new Array(N_VARS + 1).fill(null);
+
+function evalLit(lit, asg) {
+  const v = asg[lit.v];
+  if (v === null || v === undefined) return null;
+  return lit.n ? !v : v;
+}
+function evalClause(clause, asg) {
+  let anyTrue = false, anyUnknown = false;
+  for (const lit of clause) {
+    const r = evalLit(lit, asg);
+    if (r === true)  anyTrue = true;
+    if (r === null)  anyUnknown = true;
+  }
+  if (anyTrue) return 'sat';
+  if (anyUnknown) return 'unknown';
+  return 'unsat';
+}
+
+function litLabel(lit, asg, hilite) {
+  const r = evalLit(lit, asg);
+  let cls = 'lit';
+  if (hilite) {
+    if (r === true)  cls += ' true';
+    if (r === false) cls += ' false';
+  }
+  const sym = lit.n ? '¬' : '';
+  return `<span class="${cls}">${sym}x<sub>${lit.v}</sub></span>`;
+}
+
+function renderFormula(boxId, asg, hiliteLits = true) {
+  const box = document.getElementById(boxId);
+  const parts = [];
+  for (let i = 0; i < FORMULA.length; i++) {
+    const c = FORMULA[i];
+    const status = evalClause(c, asg);
+    let cls = 'clause';
+    if (status === 'sat')   cls += ' sat';
+    if (status === 'unsat') cls += ' unsat';
+    const inside = c.map(l => litLabel(l, asg, hiliteLits)).join(' <span class="conn">∨</span> ');
+    parts.push(`<span class="${cls}" data-i="${i}">(${inside})</span>`);
+  }
+  box.innerHTML = parts.join(' <span class="conn">∧</span> ');
+}
+
+function renderVars() {
+  const row = document.getElementById('varRow');
+  let html = '';
+  for (let i = 1; i <= N_VARS; i++) {
+    const v = assignment[i];
+    let cls = 'var-chip';
+    if (v === true)  cls += ' t';
+    if (v === false) cls += ' f';
+    const sym = v === true ? 'T' : v === false ? 'F' : '?';
+    html += `<div class="${cls}" data-v="${i}">x<sub>${i}</sub> = ${sym}</div>`;
+  }
+  row.innerHTML = html;
+  row.querySelectorAll('.var-chip').forEach(el => {
+    el.addEventListener('click', () => {
+      const i = parseInt(el.dataset.v);
+      assignment[i] = (assignment[i] === true) ? false
+                     : (assignment[i] === false) ? null : true;
+      el.classList.add('flip-anim');
+      setTimeout(() => el.classList.remove('flip-anim'), 400);
+      refreshPanel2();
+    });
+  });
+}
+
+function countSatisfied(asg) {
+  let s = 0;
+  for (const c of FORMULA) if (evalClause(c, asg) === 'sat') s++;
+  return s;
+}
+
+function refreshPanel2() {
+  renderVars();
+  renderFormula('formulaBox', assignment);
+  const s = countSatisfied(assignment);
+  document.getElementById('satCount').textContent = s;
+  document.getElementById('unsatCount').textContent = M - s;
+  document.getElementById('totCount').textContent = M;
+  document.getElementById('expVal').textContent = (7 * M / 8).toFixed(2);
+}
+
+document.getElementById('btnFlip').onclick = () => {
+  for (let i = 1; i <= N_VARS; i++) assignment[i] = Math.random() < 0.5;
+  refreshPanel2();
+  // little stagger animation
+  document.querySelectorAll('#varRow .var-chip').forEach((el, idx) => {
+    setTimeout(() => {
+      el.classList.add('flip-anim');
+      setTimeout(() => el.classList.remove('flip-anim'), 400);
+    }, idx * 60);
+  });
+};
+document.getElementById('btnAllT').onclick = () => {
+  for (let i = 1; i <= N_VARS; i++) assignment[i] = true;
+  refreshPanel2();
+};
+document.getElementById('btnAllF').onclick = () => {
+  for (let i = 1; i <= N_VARS; i++) assignment[i] = false;
+  refreshPanel2();
+};
+
+// initialize with a random assignment
+for (let i = 1; i <= N_VARS; i++) assignment[i] = Math.random() < 0.5;
+refreshPanel2();
+
+// ============================================================
+//  Panel 3 — Truth table for (x ∨ y ∨ ¬z)
+// ============================================================
+const TT_ROWS = [];
+for (let row = 0; row < 8; row++) {
+  const x = (row >> 2) & 1;
+  const y = (row >> 1) & 1;
+  const z = row & 1;
+  const nz = z ? 0 : 1;
+  const sat = (x | y | nz) === 1;
+  TT_ROWS.push({x, y, z, nz, sat});
+}
+let ttStep = -1;
+let ttAuto = null;
+
+function renderTT() {
+  const body = document.getElementById('ttBody');
+  let html = '';
+  for (let i = 0; i < TT_ROWS.length; i++) {
+    const r = TT_ROWS[i];
+    let rcls = 'hide';
+    if (i <= ttStep) rcls = r.sat ? 'sat' : 'unsat';
+    if (i === ttStep) rcls += ' cur';
+    const cell = (v) => `<td class="${v ? 't' : 'f'}">${v ? 'T' : 'F'}</td>`;
+    html += `<tr class="${rcls}">
+      <td>${i + 1}</td>${cell(r.x)}${cell(r.y)}${cell(r.z)}${cell(r.nz)}
+      <td class="result ${r.sat ? 't' : 'f'}">${r.sat ? 'TRUE' : 'FALSE ✗'}</td>
+    </tr>`;
+  }
+  body.innerHTML = html;
+
+  const cap = document.getElementById('ttCaption');
+  if (ttStep < 0) {
+    cap.innerHTML = 'Press <b style="color:var(--vermillion)">Next</b> to step through the 8 truth assignments.';
+  } else {
+    const r = TT_ROWS[ttStep];
+    const seenSat = TT_ROWS.slice(0, ttStep + 1).filter(x => x.sat).length;
+    const seenUns = (ttStep + 1) - seenSat;
+    let why = r.sat
+      ? `(x ∨ y ∨ ¬z) = (${r.x ? 'T' : 'F'} ∨ ${r.y ? 'T' : 'F'} ∨ ${r.nz ? 'T' : 'F'}) = <b style="color:var(--moss)">TRUE</b>`
+      : `(x ∨ y ∨ ¬z) = (F ∨ F ∨ F) = <b style="color:var(--vermillion)">FALSE</b> — the only failing row.`;
+    cap.innerHTML = `<b>Row ${ttStep + 1}/8.</b> ${why} &nbsp;·&nbsp; running tally: ${seenSat} ✓, ${seenUns} ✗`;
+    if (ttStep === 7) cap.innerHTML += ` &nbsp;⟹&nbsp; <b style="color:var(--vermillion)">P(sat) = 7/8</b>.`;
+  }
+}
+document.getElementById('ttNext').onclick = () => { if (ttStep < 7) { ttStep++; renderTT(); } };
+document.getElementById('ttPrev').onclick = () => { if (ttStep >= 0) { ttStep--; renderTT(); } };
+document.getElementById('ttReset').onclick = () => {
+  ttStep = -1;
+  if (ttAuto) { clearInterval(ttAuto); ttAuto = null; document.getElementById('ttAuto').textContent = 'Auto'; }
+  renderTT();
+};
+document.getElementById('ttAuto').onclick = (e) => {
+  if (ttAuto) {
+    clearInterval(ttAuto); ttAuto = null; e.target.textContent = 'Auto'; return;
+  }
+  e.target.textContent = 'Pause';
+  ttAuto = setInterval(() => {
+    if (ttStep >= 7) { clearInterval(ttAuto); ttAuto = null; e.target.textContent = 'Auto'; return; }
+    ttStep++; renderTT();
+  }, 700);
+};
+renderTT();
+
+// ============================================================
+//  Panel 5 — histogram of running random algo many times
+// ============================================================
+const HISTO_BUCKETS = new Array(M + 1).fill(0);
+let histoTotal = 0;
+
+function renderHisto() {
+  const svg = document.getElementById('histoSvg');
+  const W = 800, H = 220, pad = 28;
+  const innerW = W - pad * 2, innerH = H - pad * 2;
+  const max = Math.max(1, ...HISTO_BUCKETS);
+  const meanX = pad + ((7 * M / 8) / M) * innerW;
+
+  let content = '';
+  // axis
+  content += `<line class="axis-line" x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}"/>`;
+  // bars
+  const bw = innerW / (M + 1);
+  for (let k = 0; k <= M; k++) {
+    const c = HISTO_BUCKETS[k];
+    if (c === 0) continue;
+    const h = (c / max) * (innerH - 4);
+    const x = pad + k * bw + 2;
+    const y = H - pad - h;
+    const above = k >= (7 * M / 8);
+    content += `<rect class="bar ${above ? 'above' : ''}" x="${x}" y="${y}" width="${bw - 4}" height="${h}"/>`;
+  }
+  // x-axis labels
+  for (let k = 0; k <= M; k++) {
+    const x = pad + k * bw + bw / 2;
+    content += `<text class="axis-text" x="${x}" y="${H - pad + 14}" text-anchor="middle">${k}</text>`;
+  }
+  // mean line
+  content += `<line class="mean-line" x1="${meanX}" y1="${pad - 2}" x2="${meanX}" y2="${H - pad}"/>`;
+  content += `<text class="mean-text" x="${meanX + 6}" y="${pad + 10}">7m/8 = ${(7 * M / 8).toFixed(2)}</text>`;
+
+  svg.innerHTML = content;
+
+  let mean = 0;
+  for (let k = 0; k <= M; k++) mean += k * HISTO_BUCKETS[k];
+  mean = histoTotal > 0 ? mean / histoTotal : 0;
+  const aboveCount = HISTO_BUCKETS.slice(Math.ceil(7 * M / 8)).reduce((a, b) => a + b, 0);
+  document.getElementById('histoStats').textContent =
+    histoTotal > 0
+      ? `${histoTotal} runs · sample mean = ${mean.toFixed(3)} · ${aboveCount} (${(100 * aboveCount / histoTotal).toFixed(1)}%) at or above 7m/8`
+      : '';
+}
+
+document.getElementById('btnRunMany').onclick = () => {
+  const tmp = new Array(N_VARS + 1).fill(null);
+  for (let trial = 0; trial < 1000; trial++) {
+    for (let i = 1; i <= N_VARS; i++) tmp[i] = Math.random() < 0.5;
+    HISTO_BUCKETS[countSatisfied(tmp)]++;
+    histoTotal++;
+  }
+  renderHisto();
+};
+document.getElementById('btnClearHisto').onclick = () => {
+  for (let k = 0; k <= M; k++) HISTO_BUCKETS[k] = 0;
+  histoTotal = 0;
+  renderHisto();
+};
+renderHisto();
+
+// ============================================================
+//  Panel 6 — Method of Conditional Expectations
+//  Small formula: 3 vars, 4 clauses
+// ============================================================
+const D_FORMULA = [
+  [{v:1,n:false},{v:2,n:false},{v:3,n:false}],   // x1 ∨ x2 ∨ x3
+  [{v:1,n:true}, {v:2,n:false},{v:3,n:true}],    // ¬x1 ∨ x2 ∨ ¬x3
+  [{v:1,n:false},{v:2,n:true}, {v:3,n:true}],    // x1 ∨ ¬x2 ∨ ¬x3
+  [{v:1,n:true}, {v:2,n:true}, {v:3,n:false}]    // ¬x1 ∨ ¬x2 ∨ x3
+];
+
+// Compute conditional expected number of satisfied clauses given partial assignment.
+// For each clause: if any assigned literal is TRUE → contributes 1.
+// Otherwise, with k unassigned literals → contributes 1 - (1/2)^k.
+// (Assigned literals all FALSE and zero unassigned → contributes 0.)
+function condE(formula, asg) {
+  let total = 0;
+  const perClause = [];
+  for (const c of formula) {
+    let satByAssigned = false;
+    let unassigned = 0;
+    for (const l of c) {
+      const r = evalLit(l, asg);
+      if (r === true) { satByAssigned = true; break; }
+      if (r === null) unassigned++;
+    }
+    let contrib;
+    if (satByAssigned) contrib = 1;
+    else if (unassigned === 0) contrib = 0;
+    else contrib = 1 - Math.pow(0.5, unassigned);
+    perClause.push(contrib);
+    total += contrib;
+  }
+  return {total, perClause};
+}
+
+function clauseTextHTML(c, asg) {
+  return '(' + c.map(l => {
+    const sym = l.n ? '¬' : '';
+    const r = evalLit(l, asg);
+    let cls = 'lit';
+    if (r === true) cls += ' true';
+    if (r === false) cls += ' false';
+    return `<span class="${cls}">${sym}x<sub>${l.v}</sub></span>`;
+  }).join(' ∨ ') + ')';
+}
+
+let dStep = 0;       // 0..3: step 0=initial, 1=after x1 fixed, etc.
+let dAssign = [null, null, null, null];   // index 0 unused, 1..3 vars
+
+function recomputeDerand() {
+  // Greedy: go through vars in order
+  dAssign = [null, null, null, null];
+  const decisions = [];
+  // step 0: nothing fixed
+  decisions.push({var:null, asg: dAssign.slice(), eT:null, eF:null, pickedT:null});
+  for (let v = 1; v <= 3; v++) {
+    const trial1 = dAssign.slice(); trial1[v] = true;
+    const trial2 = dAssign.slice(); trial2[v] = false;
+    const eT = condE(D_FORMULA, trial1);
+    const eF = condE(D_FORMULA, trial2);
+    const pickT = eT.total >= eF.total;
+    dAssign[v] = pickT;
+    decisions.push({var:v, asg: dAssign.slice(), eT, eF, pickedT: pickT});
+  }
+  return decisions;
+}
+let dDecisions = recomputeDerand();
+
+function renderDerand() {
+  // Render formula with current state at dStep
+  const cur = dDecisions[dStep];
+  const formulaBox = document.getElementById('derandFormula');
+  let parts = [];
+  for (let i = 0; i < D_FORMULA.length; i++) {
+    const status = evalClause(D_FORMULA[i], cur.asg);
+    let cls = 'clause';
+    if (status === 'sat')   cls += ' sat';
+    if (status === 'unsat') cls += ' unsat';
+    parts.push(`<span class="${cls}">${clauseTextHTML(D_FORMULA[i], cur.asg)}</span>`);
+  }
+  formulaBox.innerHTML = parts.join(' <span class="conn">∧</span> ');
+
+  const cards = document.getElementById('derandCards');
+  if (dStep === 0) {
+    const init = condE(D_FORMULA, cur.asg);
+    cards.innerHTML = `
+      <div class="cond-card" style="grid-column:1/-1">
+        <div class="head">Initial expectation (no variables fixed)</div>
+        <div class="val">E[Y] = ${init.total.toFixed(3)}  &nbsp;=&nbsp; ${D_FORMULA.length} × 7/8 &nbsp;=&nbsp; ${(7 * D_FORMULA.length / 8).toFixed(3)}</div>
+        <div class="breakdown">Each of the ${D_FORMULA.length} clauses contributes 7/8 in expectation.</div>
+      </div>`;
+  } else {
+    // Show the two cards for the variable just decided
+    const dec = cur;
+    const labelSide = (sideAsg, sideE, isWinner, sideName) => {
+      const lines = D_FORMULA.map((c, i) => {
+        const cv = sideE.perClause[i];
+        const cstr = clauseTextHTML(c, sideAsg);
+        return `<div class="clause-line"><span>${cstr}</span><span>${cv === 1 ? '1' : cv === 0 ? '0' : cv.toFixed(3)}</span></div>`;
+      }).join('');
+      return `
+        <div class="cond-card ${isWinner ? 'winner' : ''}">
+          <div class="head">${sideName} &nbsp;·&nbsp; ${isWinner ? 'PICKED ✓' : 'rejected'}</div>
+          <div class="val">${sideE.total.toFixed(3)}</div>
+          <div class="breakdown">${lines}</div>
+        </div>`;
+    };
+    const tAsg = dAssign.slice(); tAsg[dec.var] = true;
+    const fAsg = dAssign.slice(); fAsg[dec.var] = false;
+    // But these need partial state from BEFORE this var was set:
+    const prevAsg = dDecisions[dStep - 1].asg.slice();
+    prevAsg[dec.var] = true;  const eT = dec.eT;
+    const prevAsg2 = dDecisions[dStep - 1].asg.slice();
+    prevAsg2[dec.var] = false; const eF = dec.eF;
+    cards.innerHTML =
+      labelSide(prevAsg,  eT, dec.pickedT,  `E[Y | x${dec.var} = TRUE]`) +
+      labelSide(prevAsg2, eF, !dec.pickedT, `E[Y | x${dec.var} = FALSE]`);
+  }
+
+  const status = document.getElementById('dStatus');
+  if (dStep === 0) {
+    status.innerHTML = `<b>Step 0/${dDecisions.length - 1}.</b> Start: nothing fixed. The unconditional expectation is <b>${(7 * D_FORMULA.length / 8).toFixed(3)} = 7m/8</b>. Press Next to fix x₁.`;
+  } else if (dStep < dDecisions.length - 1) {
+    status.innerHTML = `<b>Step ${dStep}/${dDecisions.length - 1}.</b> Set <b>x${dDecisions[dStep].var} = ${dDecisions[dStep].pickedT ? 'TRUE' : 'FALSE'}</b> because its conditional E is larger. Conditional E now stays ≥ 7m/8.`;
+  } else {
+    const finalSat = countSatisfied(dDecisions[dStep].asg);
+    status.innerHTML = `<b>Done.</b> Final assignment: ${[1,2,3].map(i => `x${i}=${dDecisions[dStep].asg[i] ? 'T' : 'F'}`).join(', ')}. <b style="color:var(--moss)">${finalSat}/${D_FORMULA.length} clauses satisfied</b>, which is ≥ ⌈7m/8⌉ = ⌈${(7 * D_FORMULA.length / 8).toFixed(3)}⌉ = ${Math.ceil(7 * D_FORMULA.length / 8)}. ✓`;
+  }
+}
+document.getElementById('dNext').onclick = () => {
+  if (dStep < dDecisions.length - 1) { dStep++; renderDerand(); }
+};
+document.getElementById('dPrev').onclick = () => {
+  if (dStep > 0) { dStep--; renderDerand(); }
+};
+document.getElementById('dReset').onclick = () => { dStep = 0; renderDerand(); };
+renderDerand();
+</script>
+
+</body>
+</html>

@@ -135,8 +135,8 @@ export function HeroContent() {
         </h1>
 
         <p className="text-sm font-light text-white/80 mb-6 leading-relaxed max-w-md">
-          Step through classic graph algorithms — approximate vertex cover and 2-coloring —
-          with annotated pseudocode, arbitrary-choice exploration, and proven approximation bounds.
+          Step through classic NP-hard tractable cousins — vertex cover, 2-coloring, subset-sum FPTAS,
+          and MAX-3-SAT 7/8 — with annotated pseudocode, animated traces, and proven approximation bounds.
         </p>
 
         <div className="flex items-center gap-4 flex-wrap">
@@ -159,6 +159,13 @@ export function HeroContent() {
             className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/50 text-white font-semibold text-xs uppercase tracking-[0.2em] font-mono cursor-pointer shadow-[0_6px_20px_-4px_rgba(0,0,0,0.5)] hover:bg-white hover:text-ink hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-4px_rgba(255,255,255,0.3)] transition-all duration-200"
           >
             Subset Sum · FPTAS
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          </Link>
+          <Link
+            href="/max-3-sat"
+            className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/50 text-white font-semibold text-xs uppercase tracking-[0.2em] font-mono cursor-pointer shadow-[0_6px_20px_-4px_rgba(0,0,0,0.5)] hover:bg-white hover:text-ink hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-4px_rgba(255,255,255,0.3)] transition-all duration-200"
+          >
+            MAX-3-SAT · 7/8
             <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
         </div>
@@ -197,6 +204,12 @@ export function Header() {
           className="text-white/80 hover:text-white text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full hover:bg-white/10 transition-all duration-200"
         >
           Subset Sum
+        </Link>
+        <Link
+          href="/max-3-sat"
+          className="text-white/80 hover:text-white text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full hover:bg-white/10 transition-all duration-200"
+        >
+          MAX-3-SAT
         </Link>
       </nav>
 
