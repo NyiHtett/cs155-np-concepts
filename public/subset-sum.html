@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Subset Sum FPTAS — Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4ecd8;
+    --paper-deep: #d9c9a3;
+    --ink: #0f0f1a;
+    --ink-soft: #1f1f2e;
+    --rule: #0f0f1a;
+    --vermillion: #a81d22;
+    --ochre: #a8691e;
+    --indigo: #1a325a;
+    --moss: #2f4a22;
+    --grid: rgba(15, 15, 26, 0.14);
+    --bg: #c9b88e;
+    --panel-bg: #f4ecd8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--ink);
+    font-family: "Fraunces", Georgia, serif;
+    font-feature-settings: "ss01", "ss02";
+  }
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      radial-gradient(ellipse at top left, rgba(168, 29, 34, 0.12), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(26, 50, 90, 0.15), transparent 60%);
+    background-size: 32px 32px, 32px 32px, auto, auto;
+    background-color: var(--bg);
+    min-height: 100vh;
+    padding: 24px 24px 64px;
+    font-weight: 500;
+  }
+
+  .masthead {
+    max-width: 1380px;
+    margin: 0 auto 24px;
+    background: var(--panel-bg);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 14px 22px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: end;
+    gap: 24px;
+    opacity: 0; animation: fadeUp 0.9s ease forwards;
+  }
+  .masthead .edition,
+  .masthead .folio {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .masthead .folio { text-align: right; letter-spacing: 0.15em; }
+  .masthead h1 {
+    font-family: "Instrument Serif", serif;
+    font-weight: 400;
+    font-size: clamp(22px, 2.2vw, 32px);
+    line-height: 1.1; margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .masthead h1 em { font-style: italic; color: var(--vermillion); }
+
+  main {
+    max-width: 1380px;
+    margin: 0 auto;
+    display: grid;
+    gap: 24px;
+  }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 2px solid var(--ink);
+    box-shadow: 6px 6px 0 var(--ink);
+    padding: 24px 28px;
+    position: relative;
+    opacity: 0; animation: fadeUp 0.8s ease forwards;
+  }
+  .panel::before {
+    content: ""; position: absolute; inset: 4px;
+    border: 1px solid var(--ink); pointer-events: none; opacity: 0.15;
+  }
+  .panel:nth-of-type(1) { animation-delay: 0.10s; }
+  .panel:nth-of-type(2) { animation-delay: 0.18s; }
+  .panel:nth-of-type(3) { animation-delay: 0.26s; }
+  .panel:nth-of-type(4) { animation-delay: 0.34s; }
+  .panel:nth-of-type(5) { animation-delay: 0.42s; }
+
+  .section-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--vermillion);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ""; flex: 1; height: 1px;
+    background: var(--ink); opacity: 0.2;
+  }
+
+  h2 {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(26px, 2.4vw, 36px);
+    line-height: 1.05;
+    margin: 0 0 6px 0;
+  }
+  h2 em { color: var(--vermillion); font-style: italic; }
+  .lede {
+    font-size: 16px; line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 64ch;
+    margin: 0 0 18px 0;
+  }
+  p { line-height: 1.65; }
+  b { color: var(--ink); }
+  i { color: var(--vermillion); font-style: italic; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+
+  pre {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 16px 18px;
+    font-family: "Geist Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    overflow-x: auto;
+    border: 1px solid var(--ink);
+    margin: 0;
+  }
+  pre .hl {
+    background: var(--ochre);
+    color: var(--ink);
+    display: block;
+    padding: 0 6px; margin: 0 -6px;
+    font-weight: 600;
+  }
+
+  /* Pseudocode block with line-by-line highlighting */
+  .codeblock {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: "Geist Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    padding: 16px 18px;
+    border: 1px solid var(--ink);
+    white-space: pre;
+    overflow-x: auto;
+    margin: 0;
+  }
+  .codeblock .cl {
+    display: block;
+    padding: 0 6px;
+    margin: 0 -6px;
+    border-left: 3px solid transparent;
+    transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+  }
+  .codeblock .cl.active {
+    background: var(--ochre);
+    color: var(--ink);
+    font-weight: 600;
+    border-left-color: var(--vermillion);
+  }
+  .codeblock .cl.active-ret {
+    background: rgba(47, 74, 34, 0.55);
+    color: var(--paper);
+    border-left-color: var(--moss);
+  }
+  code {
+    font-family: "Geist Mono", monospace;
+    font-size: 0.9em;
+    background: rgba(15,15,26,0.06);
+    padding: 1px 5px;
+    border: 1px solid rgba(15,15,26,0.18);
+  }
+
+  button {
+    padding: 9px 16px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer; font-weight: 500;
+    transition: all 0.15s ease;
+    border-radius: 0;
+  }
+  button:hover {
+    background: var(--ink); color: var(--paper);
+    transform: translate(-2px, -2px);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  button.active {
+    background: var(--vermillion);
+    color: var(--paper);
+    border-color: var(--vermillion);
+  }
+  button.active:hover { background: var(--vermillion); color: var(--paper); }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+
+  /* RECURSION TREE */
+  .tree-svg {
+    width: 100%;
+    max-width: 880px;
+    height: 420px;
+    display: block;
+    margin: 14px auto 0;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      #faf3e2;
+    background-size: 20px 20px;
+    border: 1px solid var(--ink);
+  }
+  .tree-node rect {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tree-node text {
+    font-family: "Geist Mono", monospace;
+    font-size: 11px;
+    fill: var(--ink);
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+    transition: fill 0.3s ease;
+  }
+  .tree-node text.result {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+  }
+  .tree-node {
+    opacity: 0;
+    transform-box: fill-box;
+    transition: opacity 0.45s ease;
+  }
+  .tree-node.shown { opacity: 1; }
+  .tree-node.current rect {
+    stroke: var(--vermillion);
+    stroke-width: 3;
+    filter: drop-shadow(2px 2px 0 var(--ink));
+  }
+  .tree-node.true rect { fill: var(--indigo); stroke: var(--ink); }
+  .tree-node.true text { fill: var(--paper); }
+  .tree-node.false rect { fill: var(--paper); stroke-dasharray: 3 3; opacity: 0.7; }
+  .tree-node.false text { fill: rgba(15,15,26,0.55); }
+  .tree-node.found rect {
+    fill: var(--moss);
+    stroke: var(--ink);
+    stroke-width: 3;
+    animation: foundPulse 1.4s ease-in-out infinite;
+  }
+  .tree-node.found text { fill: var(--paper); }
+  @keyframes foundPulse {
+    0%, 100% { filter: drop-shadow(2px 2px 0 var(--ink)); }
+    50%      { filter: drop-shadow(2px 2px 0 var(--ink)) drop-shadow(0 0 6px var(--moss)); }
+  }
+  .tree-edge {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.4s ease, stroke 0.4s ease, stroke-width 0.4s ease;
+  }
+  .tree-edge.shown { opacity: 0.55; }
+  .tree-edge.path  { stroke: var(--moss); stroke-width: 3.5; opacity: 1; }
+  .tree-edge-label {
+    font-family: "Geist Mono", monospace;
+    font-size: 9.5px;
+    fill: var(--ink-soft);
+    text-anchor: middle;
+    opacity: 0;
+    transition: opacity 0.4s ease, fill 0.3s ease;
+  }
+  .tree-edge-label.shown { opacity: 0.85; }
+  .tree-edge-label.path  { fill: var(--moss); font-weight: 600; opacity: 1; }
+
+  /* DP TABLE */
+  .dp-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--ink);
+    background: #faf3e2;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    padding: 14px;
+  }
+  table.dp {
+    border-collapse: collapse;
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    margin: 0 auto;
+  }
+  table.dp th {
+    font-weight: 500;
+    color: var(--ink-soft);
+    padding: 4px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--ink);
+    background: rgba(168,105,30,0.08);
+  }
+  table.dp th.row-h {
+    border-bottom: none;
+    border-right: 1px solid var(--ink);
+    text-align: right;
+    padding-right: 8px;
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  table.dp td {
+    width: 28px; height: 28px;
+    text-align: center;
+    border: 1px solid rgba(15,15,26,0.12);
+    background: var(--paper);
+    transition: all 0.25s ease;
+  }
+  table.dp td.t {
+    background: var(--indigo);
+    color: var(--paper);
+  }
+  table.dp td.f {
+    background: var(--paper);
+    color: rgba(15,15,26,0.25);
+  }
+  table.dp td.cur {
+    outline: 3px solid var(--vermillion);
+    outline-offset: -3px;
+    z-index: 2;
+    transform: scale(1.06);
+  }
+  table.dp td.target {
+    box-shadow: inset 0 0 0 2px var(--moss);
+  }
+
+  .dp-status {
+    margin-top: 12px;
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .dp-status b { color: var(--vermillion); }
+
+  /* SUMLIST */
+  .sumlist {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 12px;
+    background: #faf3e2;
+    border: 1px solid var(--ink);
+    min-height: 64px;
+    align-content: flex-start;
+  }
+  .sum-pill {
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+    padding: 4px 9px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    transition: all 0.3s ease;
+  }
+  .sum-pill.kept {
+    background: var(--indigo);
+    color: var(--paper);
+  }
+  .sum-pill.trimmed {
+    text-decoration: line-through;
+    opacity: 0.35;
+    background: transparent;
+    border-style: dashed;
+  }
+  .sum-pill.anchor {
+    background: var(--vermillion);
+    color: var(--paper);
+    border-color: var(--vermillion);
+  }
+
+  .slider-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 80px;
+    gap: 16px;
+    align-items: center;
+    margin: 14px 0;
+    font-family: "Geist Mono", monospace;
+    font-size: 12px;
+  }
+  .slider-row label { color: var(--ink-soft); letter-spacing: 0.08em; }
+  .slider-row .val { text-align: right; color: var(--vermillion); }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--vermillion);
+  }
+
+  /* ERROR PROOF visualization */
+  .proof-chain {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 14px 0;
+  }
+  @media (max-width: 900px) { .proof-chain { grid-template-columns: repeat(2,1fr); } }
+  .step-card {
+    background: #fffaec;
+    border: 1px solid var(--ink);
+    border-left: 4px solid var(--ochre);
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    position: relative;
+  }
+  .step-card .num {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--vermillion);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .step-card .formula {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--ink);
+    margin: 6px 0;
+    text-align: center;
+  }
+  .step-card .why {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  /* Runtime equation visualization */
+  .runtime-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 900px) { .runtime-grid { grid-template-columns: 1fr; } }
+  .factor {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 18px;
+    text-align: center;
+    border: 1px solid var(--ink);
+  }
+  .factor .top {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper-deep);
+    margin-bottom: 8px;
+  }
+  .factor .big {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-size: 32px;
+    line-height: 1;
+  }
+  .factor .why {
+    font-family: "Fraunces", serif;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 10px;
+    color: var(--paper-deep);
+  }
+
+  /* Notes connection panel */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 6px;
+  }
+  @media (max-width: 900px) { .notes-grid { grid-template-columns: 1fr; } }
+  .note-card {
+    background: #fffaec;
+    border: 1px solid var(--ink);
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .note-card .stamp {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--vermillion);
+    transform: rotate(4deg);
+    border: 1px solid var(--vermillion);
+    padding: 2px 6px;
+  }
+  .note-card h4 {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    margin: 0 0 4px 0;
+    padding-right: 70px;
+  }
+  .note-card .pg {
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .note-card p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .marg {
+    background: rgba(168,105,30,0.10);
+    border-left: 4px solid var(--ochre);
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .marg b { color: var(--ochre); }
+
+  .footer-rule {
+    text-align: center;
+    font-family: "Geist Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--ink-soft);
+    margin-top: 36px;
+    text-transform: uppercase;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="edition">Algorithms · Vol. 35 · §5.5</div>
+  <h1>The <em>Subset-Sum</em> FPTAS, Demystified</h1>
+  <div class="folio">CS155 · Class Notes<br>Pages 6042 → 6044</div>
+</header>
+
+<div style="max-width:1380px;margin:0 auto 18px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.08em;color:var(--ink-soft);text-align:right">
+  Notation: notes use <b style="color:var(--vermillion)">k</b> for the target sum throughout. CLRS calls it <b style="color:var(--vermillion)">t</b>. Same variable, different letter.
+</div>
+
+<main>
+
+<!-- ============ PANEL 1: PROBLEM ============ -->
+<section class="panel">
+  <div class="section-label">§ 1 — The Problem</div>
+  <h2>Can a subset of these numbers hit <em>exactly</em> <i>t</i>?</h2>
+  <p class="lede">
+    Given a set <i>S</i> = {x₁, …, xₙ} and a target <i>t</i>, decide whether some subset of <i>S</i> sums to <i>t</i>. This is <b>NP-complete</b>. Not because the recurrence is hard — but because <i>t</i> can be exponentially large in the input size.
+  </p>
+
+  <div class="two-col">
+    <div>
+      <div class="section-label" style="color:var(--indigo)">A tiny example</div>
+      <p style="margin-top:0">
+        Let <code>S = {1, 3, 9}</code> and <code>t = 4</code>.
+        Is there a subset summing to 4? Yes: <b>{1, 3}</b>. ✓<br>
+        What about <code>t = 5</code>? No subset works. ✗<br>
+        What about <code>t = 13</code>? Yes: <b>{1, 3, 9}</b>. ✓
+      </p>
+      <div class="marg">
+        <b>The decision-vs-optimization twist.</b> The optimization version asks: find the largest subset sum ≤ <i>t</i>. That's what the FPTAS approximates — the algorithm returns a value <i>z</i> with <i>y</i>/<i>z*</i> ≤ (1+ε), where <i>z*</i> is the true optimum.
+      </div>
+    </div>
+    <div>
+      <div class="section-label" style="color:var(--indigo)">The exact recurrence</div>
+<div class="codeblock" id="recurrenceCode"><span class="cl" data-line="header">Sub(A, k, last):</span><span class="cl" data-line="base-neg">  if (k &lt; 0 or last &lt; 0) return FALSE</span><span class="cl" data-line="base-zero">  if (k == 0)            return TRUE</span><span class="cl" data-line="skip">  return Sub(A, k,            last-1)   // skip A[last]</span><span class="cl" data-line="take">      OR Sub(A, k - A[last],  last-1)   // take A[last]</span></div>
+      <p style="margin-top:10px;font-size:13.5px;color:var(--ink-soft)">
+        At every element you either <b>take it</b> (target shrinks by its value) or <b>skip it</b> (target unchanged). Two children per call → 2ⁿ leaves.
+      </p>
+    </div>
+  </div>
+
+  <div class="section-label" style="margin-top:30px;color:var(--moss)">Step Through the Recursion · Sub({1, 3, 9}, k = 4)</div>
+  <p style="font-size:14px;line-height:1.6;color:var(--ink-soft);margin:0 0 8px 0">
+    Watch DFS unfold: at every node we recurse <b>skip</b> first (left), then <b>take</b> (right). Base cases mark FALSE on <i>k &lt; 0</i> or <i>last &lt; 0</i>, and TRUE on <i>k = 0</i>. The first TRUE leaf found is the witness subset.
+  </p>
+  <p style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:var(--ink-soft);margin:0 0 6px 0">
+    <b style="color:var(--vermillion)">A = [1, 3, 9]</b> &nbsp;·&nbsp; constant across every call &nbsp;·&nbsp; node labels show only the changing state <b style="color:var(--vermillion)">(k, last)</b>
+  </p>
+
+  <div class="controls">
+    <button id="treePrev">◀ Prev</button>
+    <button id="treeNext">Next ▶</button>
+    <button id="treeAuto">Auto-play</button>
+    <button id="treeReset">Reset</button>
+  </div>
+
+  <svg id="treeSvg" class="tree-svg" viewBox="0 0 720 400" preserveAspectRatio="xMidYMid meet"></svg>
+
+  <div class="dp-status" id="treeStatus">Press <b>Next</b> to evaluate the recurrence step by step.</div>
+</section>
+
+<!-- ============ PANEL 2: DP TABLE ============ -->
+<section class="panel">
+  <div class="section-label">§ 2 — Dynamic Programming, Visually</div>
+  <h2>Same recurrence, no recomputation: a <em>grid</em> of booleans.</h2>
+  <p class="lede">
+    Memoize: rows index <i>which prefix of S we've seen</i>, columns index <i>every possible target sum</i>. Cell <code>[i][k]</code> = TRUE iff some subset of {x₁,…,xᵢ} sums to <i>k</i>. Read the answer from the bottom-right.
+  </p>
+
+  <div class="controls">
+    <button id="dpPrev">◀ Prev cell</button>
+    <button id="dpNext">Next cell ▶</button>
+    <button id="dpAuto">Auto-fill</button>
+    <button id="dpReset">Reset</button>
+  </div>
+
+  <div class="dp-wrap">
+    <table class="dp" id="dpTable"></table>
+  </div>
+
+  <div class="dp-status" id="dpStatus">
+    Press <b>Next cell</b> to fill the table left-to-right, top-to-bottom.
+  </div>
+
+  <div class="marg">
+    <b>Why this is O(<i>n</i>·<i>t</i>), not polynomial.</b> The grid has <i>n</i>·<i>t</i> cells. Looks linear — but <i>t</i> is given as a <i>number</i>, whose input size is only <i>log t</i> bits. So O(<i>n</i>·<i>t</i>) = O(<i>n</i>·2<sup>log t</sup>) — exponential in the input size. This is why your notes wrote <i>"NP-complete"</i> next to the grid: pseudo-polynomial, not polynomial.
+  </div>
+</section>
+
+<!-- ============ PANEL 3: TRIM ============ -->
+<section class="panel">
+  <div class="section-label">§ 3 — The Trim Trick</div>
+  <h2>Throw away near-duplicates. Keep the list <em>logarithmic</em>.</h2>
+  <p class="lede">
+    The exact algorithm builds a list of every reachable sum. After <i>i</i> rounds the list can have 2<sup>i</sup> values. <b>Trim(L, δ)</b> walks <i>L</i> in sorted order and drops any <i>y</i> that's within a factor (1+δ) of the previously kept anchor — an already-kept value <i>z</i> stands in as a close-enough substitute.
+  </p>
+
+  <div class="slider-row">
+    <label>δ (trim factor)</label>
+    <input type="range" id="deltaSlider" min="0" max="0.5" step="0.005" value="0.10">
+    <span class="val" id="deltaVal">0.100</span>
+  </div>
+
+  <div style="margin-top:6px">
+    <div class="section-label" style="color:var(--ink-soft)">List <i>L</i></div>
+    <div class="sumlist" id="rawList"></div>
+  </div>
+  <div style="margin-top:14px">
+    <div class="section-label" style="color:var(--moss)">After Trim(L, δ)</div>
+    <div class="sumlist" id="trimList"></div>
+  </div>
+
+  <div class="dp-status" id="trimStatus" style="margin-top:14px">
+    <b>Anchors</b> (vermillion) are kept; pills with the same anchor get folded into it.
+  </div>
+
+  <div class="marg">
+    <b>So why was 1005 dropped from the lecture's list?</b> The professor said <i>"it's not too far from 1004"</i> — meaning 1004 is already in the list, and 1005/(1+δ) ≤ 1004 for the chosen δ, so 1004 stands in as the substitute. The error introduced is at most a (1+δ) factor — a very cheap price for a much shorter list.
+  </div>
+</section>
+
+<!-- ============ PANEL 4: ERROR PROOF ============ -->
+<section class="panel">
+  <div class="section-label">§ 4 — Page 2: Why the Error Stays Small</div>
+  <h2>Choose <em>δ = ε / 2n</em>. Compounding gives back <em>1 + ε</em>.</h2>
+  <p class="lede">
+    We trim <i>n</i> times (once per element). Each trim multiplies the worst-case error by (1+δ). After <i>n</i> rounds the error has compounded — but the tight choice of <i>δ</i> keeps the total within (1+ε).
+  </p>
+
+  <div class="proof-chain">
+    <div class="step-card">
+      <div class="num">Step 1 — pick δ</div>
+      <div class="formula">δ = ε / 2n</div>
+      <div class="why">Why divided by <b>2n</b>? Because (1+x)<sup>n</sup> ≈ e<sup>nx</sup> — and we want the eventual exponent to be ε/2, not ε. The "2" buys headroom for the next step.</div>
+    </div>
+    <div class="step-card">
+      <div class="num">Step 2 — compound n times</div>
+      <div class="formula">(1 + ε/2n)<sup>n</sup> ≤ e<sup>ε/2</sup></div>
+      <div class="why">Standard inequality (1+x) ≤ e<sup>x</sup> applied <i>n</i> times. n rounds of trimming = at most this multiplicative slack.</div>
+    </div>
+    <div class="step-card">
+      <div class="num">Step 3 — bound the exponential</div>
+      <div class="formula">e<sup>ε/2</sup> ≤ 1 + ε/2 + (ε/2)²</div>
+      <div class="why">The other half of the inequality: e<sup>x</sup> ≤ 1 + x + x². Lets us turn the exponential back into a clean (1 + something).</div>
+    </div>
+    <div class="step-card">
+      <div class="num">Step 4 — drop the tail</div>
+      <div class="formula">≤ 1 + ε</div>
+      <div class="why">Since ε &lt; 1, the (ε/2)² term is at most ε/2. Sum: ε/2 + ε/2 = ε. Total error bound = (1 + ε). ∎</div>
+    </div>
+  </div>
+
+  <div class="marg" style="margin-top:22px">
+    <b>Why is (ε/2)² ≤ ε/2 when ε &lt; 1?</b> Squaring a number less than 1 makes it <i>smaller</i>, not bigger. Since ε &lt; 1, we have ε/2 &lt; ½, and squaring a fraction shrinks it further. The algebra: <code>(ε/2)² = ε²/4 ≤ ε/2 ⟺ ε ≤ 2</code>, which holds the moment ε &lt; 1. Concrete:
+    <table style="margin-top:10px;border-collapse:collapse;font-family:'Geist Mono',monospace;font-size:12px">
+      <thead><tr style="border-bottom:1px solid var(--ink)">
+        <th style="padding:4px 14px;text-align:left;color:var(--ink-soft);font-weight:500">ε</th>
+        <th style="padding:4px 14px;text-align:left;color:var(--ink-soft);font-weight:500">ε/2</th>
+        <th style="padding:4px 14px;text-align:left;color:var(--ink-soft);font-weight:500">(ε/2)²</th>
+        <th style="padding:4px 14px;text-align:left;color:var(--ink-soft);font-weight:500">absorbed?</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:3px 14px">0.20</td><td style="padding:3px 14px">0.10</td><td style="padding:3px 14px">0.01</td><td style="padding:3px 14px;color:var(--moss)">0.01 ≤ 0.10 ✓</td></tr>
+        <tr><td style="padding:3px 14px">0.50</td><td style="padding:3px 14px">0.25</td><td style="padding:3px 14px">0.0625</td><td style="padding:3px 14px;color:var(--moss)">0.0625 ≤ 0.25 ✓</td></tr>
+        <tr><td style="padding:3px 14px">0.90</td><td style="padding:3px 14px">0.45</td><td style="padding:3px 14px">0.2025</td><td style="padding:3px 14px;color:var(--moss)">0.2025 ≤ 0.45 ✓</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;text-align:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:18px;color:var(--ink)">
+      e<sup>ε/2</sup> &nbsp;≤&nbsp; 1 + ε/2 + (ε/2)² &nbsp;≤&nbsp; 1 + ε/2 + ε/2 &nbsp;=&nbsp; 1 + ε &nbsp; ∎
+    </div>
+  </div>
+
+  <div class="slider-row" style="margin-top:22px">
+    <label>n (rounds)</label>
+    <input type="range" id="nSlider" min="2" max="200" step="1" value="20">
+    <span class="val" id="nVal">20</span>
+  </div>
+  <div class="slider-row">
+    <label>ε (target)</label>
+    <input type="range" id="epsSlider" min="0.01" max="0.5" step="0.01" value="0.20">
+    <span class="val" id="epsVal">0.20</span>
+  </div>
+  <div class="dp-status" id="errStatus"></div>
+</section>
+
+<!-- ============ PANEL 5: RUNTIME ============ -->
+<section class="panel">
+  <div class="section-label">§ 5 — Page 3: Runtime, and Why "FPTAS"</div>
+  <h2>List size stays <em>O(n log t / ε)</em>. Total work polynomial in <em>n, log t, 1/ε</em>.</h2>
+  <p class="lede">
+    The bound on list length is what makes this fast. Trimmed values increase by at least a factor of (1+δ), so a list whose values lie in [0, t] holds at most <code>log<sub>1+δ</sub> t</code> of them.
+  </p>
+
+  <div class="runtime-grid">
+    <div class="factor">
+      <div class="top">rounds</div>
+      <div class="big">n</div>
+      <div class="why">One trim per element of <i>S</i>.</div>
+    </div>
+    <div class="factor">
+      <div class="top">list size per round</div>
+      <div class="big">O(n · log&nbsp;t / ε)</div>
+      <div class="why">From log<sub>1+δ</sub> t with δ = ε/2n. Use ln(1+x) ≥ x/(1+x) to flatten.</div>
+    </div>
+    <div class="factor">
+      <div class="top">total work</div>
+      <div class="big">O(n²·log&nbsp;t / ε)</div>
+      <div class="why">Multiply rounds × per-round merge+trim. Polynomial in <i>n</i>, log <i>t</i>, and 1/ε.</div>
+    </div>
+  </div>
+
+  <div class="marg" style="margin-top:22px">
+    <b>What "fully" means in FPTAS.</b> A PTAS is polynomial in <i>n</i> for any fixed ε. A <i>fully</i> PTAS is polynomial in <i>n</i> <b>and</b> 1/ε together. Your circled remark is exactly the boundary:
+    <br>· ε &gt; 1/n → 1/ε is small → algorithm is polynomial ✓
+    <br>· ε ≈ 1/t (i.e. exact) → 1/ε is exponential in input size → back to NP-hard ✗
+    <br>The FPTAS gives you a <i>knob</i> between accuracy and tractability.
+  </div>
+</section>
+
+<!-- ============ PANEL 6: NOTES MAP ============ -->
+<section class="panel">
+  <div class="section-label">§ 6 — How Your Three Pages Fit Together</div>
+  <h2>One algorithm, three proofs, one <em>FPTAS</em>.</h2>
+
+  <div class="notes-grid">
+    <div class="note-card">
+      <div class="stamp">IMG · 6042</div>
+      <h4>Page 1 — the exact algorithm</h4>
+      <div class="pg">Sub(A,k,last) · DP grid O(nk) · iter. list-build</div>
+      <p>Two algorithms on one page. <b>Top half:</b> the recursive Sub(A,k,last) plus the DP grid labeled <i>O(nk)</i> with the "NP-complete" arrow — pseudo-polynomial because <i>k</i> is exponential in input size. <b>Bottom half:</b> the iterative list-building <i>{0} → {0,1} → {0,1,3,4} → …</i> for the example {1, 3, 106, 9, …}. That second algorithm is exactly what gets trimmed in Panel 3.</p>
+    </div>
+    <div class="note-card">
+      <div class="stamp">IMG · 6043</div>
+      <h4>Page 2 — correctness of approximation</h4>
+      <div class="pg">δ = ε/2n · (1+x) ≤ eˣ ≤ 1+x+x²</div>
+      <p>Proves the <b>approximation ratio</b>: that after <i>n</i> rounds of trimming, the answer we return is at most a factor (1+ε) worse than optimal. The whole algebraic chain on this page is just bounding the compounded error.</p>
+    </div>
+    <div class="note-card">
+      <div class="stamp">IMG · 6044</div>
+      <h4>Page 3 — runtime &amp; FPTAS</h4>
+      <div class="pg">|L| ≤ 3n·ln t / ε · O(n²·lg t / ε)</div>
+      <p>Bounds the list size per round, then multiplies through to get total work. Concludes: polynomial in <i>n</i>, <i>log t</i>, and <i>1/ε</i> — the definition of a <b>Fully Polynomial-Time Approximation Scheme</b>.</p>
+    </div>
+  </div>
+
+  <div class="marg" style="margin-top:22px">
+    <b>The unstated transition between pages.</b> Between page 1 and page 2 there's an unwritten line the professor probably said aloud: <i>"we can't solve this exactly in poly-time, so let's accept ε% error and see how fast we can go."</i> ε is not derived from anywhere — it's the user's <b>input</b>, the dial you turn. Pages 2 and 3 then prove the algorithm <b>honors</b> that dial: error ≤ (1+ε), runtime polynomial in 1/ε.
+  </div>
+</section>
+
+<div class="footer-rule">⁂ &nbsp;·&nbsp; end of edition &nbsp;·&nbsp; ⁂</div>
+
+</main>
+
+<script>
+// ============================================================
+//  PANEL 2 — DP TABLE
+// ============================================================
+const S = [1, 3, 5, 9];      // small set
+const T = 13;                 // target
+
+function buildDP(S, T) {
+  const n = S.length;
+  const dp = Array.from({length: n+1}, () => new Array(T+1).fill(false));
+  for (let i = 0; i <= n; i++) dp[i][0] = true;
+  for (let i = 1; i <= n; i++) {
+    for (let k = 0; k <= T; k++) {
+      dp[i][k] = dp[i-1][k] || (k - S[i-1] >= 0 && dp[i-1][k - S[i-1]]);
+    }
+  }
+  return dp;
+}
+const DP = buildDP(S, T);
+
+let dpStep = 0;          // how many cells filled (in row-major order, row 0 done at start)
+const totalCells = (S.length) * (T + 1);  // rows 1..n × cols 0..T
+
+function renderDP() {
+  const tbl = document.getElementById('dpTable');
+  let html = '';
+  // header row: k = 0 .. T
+  html += '<tr><th></th>';
+  for (let k = 0; k <= T; k++) html += `<th>${k}</th>`;
+  html += '</tr>';
+  for (let i = 0; i <= S.length; i++) {
+    const lab = i === 0 ? '∅' : `{${S.slice(0,i).join(',')}}`;
+    html += `<tr><th class="row-h">${lab}</th>`;
+    for (let k = 0; k <= T; k++) {
+      // visible if either i===0 (base row) or it has been filled by stepping
+      const cellIndex = (i === 0) ? -1 : (i - 1) * (T + 1) + k;
+      const filled = (i === 0) || cellIndex < dpStep;
+      const cur = (i > 0) && (cellIndex === dpStep - 1);
+      const isTarget = (i === S.length && k === T);
+      let cls = '';
+      if (filled) cls = DP[i][k] ? 't' : 'f';
+      if (cur) cls += ' cur';
+      if (isTarget) cls += ' target';
+      const txt = filled ? (DP[i][k] ? 'T' : '·') : '';
+      html += `<td class="${cls.trim()}">${txt}</td>`;
+    }
+    html += '</tr>';
+  }
+  tbl.innerHTML = html;
+
+  // status
+  const status = document.getElementById('dpStatus');
+  if (dpStep === 0) {
+    status.innerHTML = `Base case: row 0 has only column <b>k=0</b> set to <b>T</b> (the empty subset sums to 0). Press <b>Next cell</b> to begin.`;
+  } else {
+    const flat = dpStep - 1;
+    const i = Math.floor(flat / (T + 1)) + 1;
+    const k = flat % (T + 1);
+    const took = (k - S[i-1] >= 0 && DP[i-1][k - S[i-1]]);
+    const skipped = DP[i-1][k];
+    let why;
+    if (DP[i][k]) {
+      why = took && skipped
+        ? `both branches succeed`
+        : took ? `<b>take</b> ${S[i-1]}: dp[${i-1}][${k - S[i-1]}] = T`
+               : `<b>skip</b> ${S[i-1]}: dp[${i-1}][${k}] = T`;
+    } else {
+      why = `neither <b>skip</b> (dp[${i-1}][${k}]=F) nor <b>take</b> (dp[${i-1}][${k - S[i-1]}]=${k - S[i-1] < 0 ? '×' : 'F'}) works`;
+    }
+    status.innerHTML = `Cell <b>dp[${i}][${k}]</b> using items {${S.slice(0,i).join(',')}}, target ${k} → <b>${DP[i][k]?'TRUE':'FALSE'}</b> — ${why}.`;
+    if (dpStep === totalCells) {
+      status.innerHTML += `<br><br>Bottom-right cell <b>dp[${S.length}][${T}] = ${DP[S.length][T]?'TRUE':'FALSE'}</b>: ${DP[S.length][T] ? 'a subset of ' + JSON.stringify(S) + ' sums to ' + T + '. ✓' : 'no subset of ' + JSON.stringify(S) + ' sums to ' + T + '.'}`;
+    }
+  }
+}
+
+document.getElementById('dpNext').onclick = () => {
+  if (dpStep < totalCells) { dpStep++; renderDP(); }
+};
+document.getElementById('dpPrev').onclick = () => {
+  if (dpStep > 0) { dpStep--; renderDP(); }
+};
+document.getElementById('dpReset').onclick = () => { dpStep = 0; renderDP(); };
+let dpAutoTimer = null;
+document.getElementById('dpAuto').onclick = (e) => {
+  if (dpAutoTimer) { clearInterval(dpAutoTimer); dpAutoTimer = null; e.target.textContent = 'Auto-fill'; return; }
+  e.target.textContent = 'Pause';
+  dpAutoTimer = setInterval(() => {
+    if (dpStep >= totalCells) { clearInterval(dpAutoTimer); dpAutoTimer = null; e.target.textContent = 'Auto-fill'; return; }
+    dpStep++; renderDP();
+  }, 140);
+};
+renderDP();
+
+// ============================================================
+//  PANEL 3 — TRIM
+// ============================================================
+// Mirrors page 2's running list — includes the 1003/1004/1005 cluster
+// the professor singled out ("1005 not too far from 1004").
+const RAW = [0, 1, 3, 4, 5, 7, 8, 106, 107, 109, 113, 1000, 1003, 1004, 1005, 1007, 1010, 1101, 1106, 1113];
+
+function trim(L, delta) {
+  const sorted = [...L].sort((a,b)=>a-b);
+  const kept = [];
+  const status = sorted.map(v => ({v, kept:false, anchor:false}));
+  let last = -Infinity;
+  for (let i = 0; i < sorted.length; i++) {
+    const y = sorted[i];
+    if (y > last * (1 + delta)) {
+      kept.push(y);
+      status[i].kept = true;
+      status[i].anchor = true;
+      last = y;
+    }
+  }
+  return {kept, status};
+}
+
+function renderTrim() {
+  const delta = parseFloat(document.getElementById('deltaSlider').value);
+  document.getElementById('deltaVal').textContent = delta.toFixed(3);
+  const {kept, status} = trim(RAW, delta);
+  const sorted = [...RAW].sort((a,b)=>a-b);
+
+  // raw list — show every value, anchors highlighted
+  const raw = document.getElementById('rawList');
+  raw.innerHTML = status.map(s =>
+    `<span class="sum-pill ${s.anchor ? 'anchor' : ''}">${s.v}</span>`
+  ).join('');
+
+  // trimmed list — only kept values (with strikethroughs for dropped)
+  const trimEl = document.getElementById('trimList');
+  trimEl.innerHTML = status.map(s =>
+    s.kept
+      ? `<span class="sum-pill kept">${s.v}</span>`
+      : `<span class="sum-pill trimmed">${s.v}</span>`
+  ).join('');
+
+  document.getElementById('trimStatus').innerHTML =
+    `Original list: <b>${RAW.length}</b> values · After trim with δ=${delta.toFixed(3)}: <b>${kept.length}</b> values kept (${(100*kept.length/RAW.length).toFixed(0)}%).` +
+    ` Each dropped value is within a (1+δ) factor of its anchor.`;
+}
+document.getElementById('deltaSlider').addEventListener('input', renderTrim);
+renderTrim();
+
+// ============================================================
+//  PANEL 4 — ERROR COMPOUNDING
+// ============================================================
+function renderErr() {
+  const n = parseInt(document.getElementById('nSlider').value);
+  const eps = parseFloat(document.getElementById('epsSlider').value);
+  document.getElementById('nVal').textContent = n;
+  document.getElementById('epsVal').textContent = eps.toFixed(2);
+  const delta = eps / (2 * n);
+  const compounded = Math.pow(1 + delta, n);
+  const expBound = Math.exp(eps / 2);
+  const finalBound = 1 + eps;
+  document.getElementById('errStatus').innerHTML =
+    `δ = ε/2n = <b>${delta.toExponential(3)}</b> &nbsp;|&nbsp;` +
+    `(1+δ)<sup>n</sup> = <b>${compounded.toFixed(6)}</b> &nbsp;≤&nbsp;` +
+    `e<sup>ε/2</sup> = <b>${expBound.toFixed(6)}</b> &nbsp;≤&nbsp;` +
+    `1 + ε = <b>${finalBound.toFixed(6)}</b> ✓`;
+}
+document.getElementById('nSlider').addEventListener('input', renderErr);
+document.getElementById('epsSlider').addEventListener('input', renderErr);
+renderErr();
+
+// ============================================================
+//  PANEL 1 — RECURSION TREE FOR Sub({1,3,9}, k=4)
+// ============================================================
+const TREE_NODES = [
+  // id,      parent, x,   y,   k,   last, edge label,   base case result
+  {id:'r',    par:null, x:360, y:38,  k:4,  last:2,  edge:null,     base:null},
+  {id:'rS',   par:'r',  x:180, y:130, k:4,  last:1,  edge:'skip 9', base:null},
+  {id:'rT',   par:'r',  x:560, y:130, k:-5, last:1,  edge:'take 9', base:'F'},  // k<0
+  {id:'rSS',  par:'rS', x:90,  y:225, k:4,  last:0,  edge:'skip 3', base:null},
+  {id:'rST',  par:'rS', x:290, y:225, k:1,  last:0,  edge:'take 3', base:null},
+  {id:'rSSS', par:'rSS',x:40,  y:340, k:4,  last:-1, edge:'skip 1', base:'F'},  // last<0
+  {id:'rSST', par:'rSS',x:150, y:340, k:3,  last:-1, edge:'take 1', base:'F'},  // last<0
+  {id:'rSTS', par:'rST',x:245, y:340, k:1,  last:-1, edge:'skip 1', base:'F'},  // last<0
+  {id:'rSTT', par:'rST',x:365, y:340, k:0,  last:-1, edge:'take 1', base:'T'}   // k=0 ✓
+];
+const NW = 100, NH = 36;
+const nodeById = id => TREE_NODES.find(n => n.id === id);
+
+const TREE_STEPS = [
+  { show:['r'], cur:'r', line:'skip',
+    desc:'Start at the root: <b>Sub(k=4, last=2)</b>. Two branches to explore — <b>skip A[2]=9</b> first.' },
+  { show:['rS'], edges:['rS'], cur:'rS', line:'skip',
+    desc:'Skip 9 → recurse on <b>Sub(k=4, last=1)</b>. Skip first again.' },
+  { show:['rSS'], edges:['rSS'], cur:'rSS', line:'skip',
+    desc:'Skip 3 → recurse on <b>Sub(k=4, last=0)</b>. Skip first once more.' },
+  { show:['rSSS'], edges:['rSSS'], mark:{rSSS:'F'}, cur:'rSSS', line:'base-neg',
+    desc:'Skip 1 → <b>Sub(k=4, last=-1)</b>. Base: <i>last &lt; 0</i> → returns <b>FALSE</b>.' },
+  { show:['rSST'], edges:['rSST'], mark:{rSST:'F'}, cur:'rSST', line:'base-neg',
+    desc:'Now try take 1 → <b>Sub(k=3, last=-1)</b>. Base: <i>last &lt; 0</i> → returns <b>FALSE</b>.' },
+  { mark:{rSS:'F'}, cur:'rSS', line:['skip','take'], lineKind:'ret',
+    desc:'Both branches FALSE. <b>Sub(k=4, last=0)</b> returns <b>FALSE</b>. Back up to parent.' },
+  { show:['rST'], edges:['rST'], cur:'rST', line:'take',
+    desc:'Back at <b>Sub(k=4, last=1)</b>. Skip failed. Try take 3 → <b>Sub(k=1, last=0)</b>.' },
+  { show:['rSTS'], edges:['rSTS'], mark:{rSTS:'F'}, cur:'rSTS', line:'base-neg',
+    desc:'Skip 1 → <b>Sub(k=1, last=-1)</b>. Base: <i>last &lt; 0</i> → <b>FALSE</b>.' },
+  { show:['rSTT'], edges:['rSTT'], mark:{rSTT:'FOUND'}, cur:'rSTT', line:'base-zero',
+    desc:'Take 1 → <b>Sub(k=0, last=-1)</b>. Base: <i>k = 0</i> → <b>TRUE</b> ★ Witness subset: <i>{1, 3}</i>.' },
+  { mark:{rST:'T'}, cur:'rST', pathEdges:['rSTT'], line:['skip','take'], lineKind:'ret',
+    desc:'<b>Sub(k=1, last=0)</b> returns <b>TRUE</b> (take branch succeeded).' },
+  { mark:{rS:'T'}, cur:'rS', pathEdges:['rST'], line:['skip','take'], lineKind:'ret',
+    desc:'<b>Sub(k=4, last=1)</b> returns <b>TRUE</b> (take branch succeeded).' },
+  { show:['rT'], edges:['rT'], mark:{rT:'F'}, cur:'rT', line:'base-neg',
+    desc:'For completeness, the take-9 branch: <b>Sub(k=-5, last=1)</b>. Base: <i>k &lt; 0</i> → <b>FALSE</b>. (With short-circuit OR, this isn\'t actually evaluated.)' },
+  { mark:{r:'T'}, cur:'r', pathEdges:['rS'], line:['skip','take'], lineKind:'ret',
+    desc:'<b>Sub(k=4, last=2)</b> returns <b>TRUE</b>. ✓ &nbsp; Green path = witness for {1, 3}.' }
+];
+
+let treeStep = -1;
+let treeAutoTimer = null;
+
+function renderTree() {
+  const svg = document.getElementById('treeSvg');
+  // Accumulate state from step 0 up to treeStep
+  const shown  = new Set(['r']);
+  const edges  = new Set();
+  const marks  = {};
+  const pathEdges = new Set();
+
+  for (let i = 0; i <= treeStep; i++) {
+    const s = TREE_STEPS[i];
+    if (s.show)       s.show.forEach(v => shown.add(v));
+    if (s.edges)      s.edges.forEach(v => edges.add(v));
+    if (s.mark)       Object.assign(marks, s.mark);
+    if (s.pathEdges)  s.pathEdges.forEach(v => pathEdges.add(v));
+  }
+  const cur = treeStep >= 0 ? TREE_STEPS[treeStep].cur : null;
+
+  let content = '';
+
+  // Edges first (under nodes)
+  for (const node of TREE_NODES) {
+    if (!node.par) continue;
+    const par = nodeById(node.par);
+    const visible = edges.has(node.id) || (shown.has(node.id) && shown.has(par.id));
+    if (!visible) continue;
+    const x1 = par.x, y1 = par.y + NH/2;
+    const x2 = node.x, y2 = node.y - NH/2;
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const onPath = pathEdges.has(node.id);
+    const ecls = 'tree-edge shown' + (onPath ? ' path' : '');
+    const lcls = 'tree-edge-label shown' + (onPath ? ' path' : '');
+    content += `<path class="${ecls}" d="M ${x1} ${y1} L ${x2} ${y2}"/>`;
+    if (node.edge) {
+      const dx = x2 - x1, dy = y2 - y1;
+      const len = Math.sqrt(dx*dx + dy*dy);
+      // Offset label perpendicular to edge by a few px so it doesn't sit on the line
+      const ox = -dy / len * 6;
+      const oy =  dx / len * 6;
+      content += `<text class="${lcls}" x="${mx + ox}" y="${my + oy}">${node.edge}</text>`;
+    }
+  }
+
+  // Nodes
+  for (const node of TREE_NODES) {
+    const isShown = shown.has(node.id);
+    const isCur   = node.id === cur;
+    const mark    = marks[node.id];
+    let cls = 'tree-node';
+    if (isShown)               cls += ' shown';
+    if (isCur)                 cls += ' current';
+    if (mark === 'T')          cls += ' true';
+    if (mark === 'F')          cls += ' false';
+    if (mark === 'FOUND')      cls += ' found';
+    const label = `Sub(${node.k}, ${node.last})`;
+    const result = mark === 'FOUND' ? 'TRUE · k=0'
+                 : mark === 'T'     ? 'TRUE'
+                 : mark === 'F'     ? 'FALSE'
+                 : '';
+    content += `<g class="${cls}" transform="translate(${node.x}, ${node.y})">`
+            +  `<rect x="${-NW/2}" y="${-NH/2}" width="${NW}" height="${NH}" rx="2"/>`
+            +  `<text y="${result ? -4 : 0}">${label}</text>`
+            +  (result ? `<text class="result" y="10">${result}</text>` : '')
+            +  `</g>`;
+  }
+
+  svg.innerHTML = content;
+
+  // Pseudocode line highlighting
+  document.querySelectorAll('#recurrenceCode .cl').forEach(el => {
+    el.classList.remove('active', 'active-ret');
+  });
+  if (treeStep >= 0) {
+    const step = TREE_STEPS[treeStep];
+    if (step.line) {
+      const arr = Array.isArray(step.line) ? step.line : [step.line];
+      const cls = step.lineKind === 'ret' ? 'active-ret' : 'active';
+      arr.forEach(key => {
+        const el = document.querySelector(`#recurrenceCode .cl[data-line="${key}"]`);
+        if (el) el.classList.add(cls);
+      });
+    }
+  }
+
+  const status = document.getElementById('treeStatus');
+  if (treeStep < 0) {
+    status.innerHTML = 'Press <b>Next</b> to evaluate the recurrence step by step.';
+  } else {
+    status.innerHTML = `<b>Step ${treeStep + 1} / ${TREE_STEPS.length}.</b> ${TREE_STEPS[treeStep].desc}`;
+  }
+}
+
+document.getElementById('treeNext').onclick = () => {
+  if (treeStep < TREE_STEPS.length - 1) { treeStep++; renderTree(); }
+};
+document.getElementById('treePrev').onclick = () => {
+  if (treeStep >= 0) { treeStep--; renderTree(); }
+};
+document.getElementById('treeReset').onclick = () => {
+  treeStep = -1;
+  if (treeAutoTimer) { clearInterval(treeAutoTimer); treeAutoTimer = null;
+    document.getElementById('treeAuto').textContent = 'Auto-play'; }
+  renderTree();
+};
+document.getElementById('treeAuto').onclick = (e) => {
+  if (treeAutoTimer) {
+    clearInterval(treeAutoTimer); treeAutoTimer = null;
+    e.target.textContent = 'Auto-play';
+    return;
+  }
+  e.target.textContent = 'Pause';
+  treeAutoTimer = setInterval(() => {
+    if (treeStep >= TREE_STEPS.length - 1) {
+      clearInterval(treeAutoTimer); treeAutoTimer = null;
+      e.target.textContent = 'Auto-play';
+      return;
+    }
+    treeStep++; renderTree();
+  }, 1500);
+};
+renderTree();
+</script>
+
+</body>
+</html>

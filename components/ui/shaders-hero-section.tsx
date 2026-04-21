@@ -154,6 +154,13 @@ export function HeroContent() {
             2-Coloring · BFS
             <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
           </Link>
+          <Link
+            href="/subset-sum"
+            className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/50 text-white font-semibold text-xs uppercase tracking-[0.2em] font-mono cursor-pointer shadow-[0_6px_20px_-4px_rgba(0,0,0,0.5)] hover:bg-white hover:text-ink hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-4px_rgba(255,255,255,0.3)] transition-all duration-200"
+          >
+            Subset Sum · FPTAS
+            <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          </Link>
         </div>
       </div>
     </main>
@@ -184,6 +191,12 @@ export function Header() {
           className="text-white/80 hover:text-white text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full hover:bg-white/10 transition-all duration-200"
         >
           2-Coloring
+        </Link>
+        <Link
+          href="/subset-sum"
+          className="text-white/80 hover:text-white text-[10px] font-mono uppercase tracking-widest px-3 py-2 rounded-full hover:bg-white/10 transition-all duration-200"
+        >
+          Subset Sum
         </Link>
       </nav>
 
